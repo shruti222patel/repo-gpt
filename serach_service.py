@@ -3,7 +3,9 @@ from pathlib import Path
 from pprint import pprint
 
 import pandas as pd
-from openai.embeddings_utils import cosine_similarity, get_embedding
+from scipy import spatial
+
+from openai_service import get_embedding
 
 
 class SearchService:
@@ -17,9 +19,9 @@ class SearchService:
         print(matches)
 
     def semantic_search(self, code_query: str):
-        embedding = get_embedding(code_query, engine="text-embedding-ada-002")
-        self.df["similarities"] = self.df.code_embedding.apply(
-            lambda x: cosine_similarity(x, embedding)
+        embedding = get_embedding(code_query)
+        self.df["similarities"] = self.df["code_embedding"].apply(
+            lambda x: spatial.distance.cosine(x, embedding)
         )
 
         n = 3
@@ -28,9 +30,9 @@ class SearchService:
         if pprint:
             for r in res.iterrows():
                 print(
-                    r[1].filepath
+                    str(r[1].filepath)
                     + ":"
-                    + r[1].function_name
+                    + str(r[1].name)
                     + "  score="
                     + str(round(r[1].similarities, 3))
                 )

@@ -84,16 +84,18 @@ class CodeExtractor:
         handler = self.get_handler(filepath)
         code_blocks = []
         if handler:
-            funcs = handler().extract_code(filepath)
-            code_blocks = [
-                CodeBlock(
-                    code=func["code"],
-                    function_name=func["function_name"],
-                    filepath=filepath,
-                    checksum=file_checksum,
-                )
-                for func in funcs
-            ]
+            parsed_code = handler().extract_code(filepath)
+            if parsed_code:
+                code_blocks = [
+                    CodeBlock(
+                        code=parsed.code,
+                        code_type=parsed.code_type,
+                        name=parsed.name,
+                        filepath=filepath,
+                        checksum=file_checksum,
+                    )
+                    for parsed in parsed_code
+                ]
         return code_blocks
 
     def load_data(self):

@@ -1,4 +1,8 @@
-from file_handler.abstract_handler import AbstractHandler
+import ast
+from pathlib import Path
+from typing import List
+
+from file_handler.abstract_handler import AbstractHandler, ParsedCode
 from file_handler.handler_registry import register_handler
 
 
@@ -20,11 +24,31 @@ class PythonFileHandler(AbstractHandler):
                     break
         return "\n".join(ret)
 
-    def extract_code(self, filepath):
-        whole_code = open(filepath).read().replace("\r", "\n")
-        all_lines = whole_code.split("\n")
-        for i, l in enumerate(all_lines):
-            if l.startswith("def "):
-                code = self.get_until_no_space(all_lines, i)
-                function_name = self.get_function_name(code)
-                yield {"code": code, "function_name": function_name}
+    def extract_code(self, filepath: Path) -> List[ParsedCode]:
+        with open(filepath, "r") as source_code:
+            try:
+                tree = ast.parse(source_code.read())
+                return self.parse_tree(tree)
+            except Exception as e:
+                print(f"Failed to parse file {filepath}: {e}")
+
+    def parse_tree(self, tree):
+        if ast.iter_child_nodes(tree) is None:
+            return []
+        parsed_nodes = []
+        for node in ast.iter_child_nodes(tree):
+            parsed_node_segment = self.parse_tree(node)
+            if isinstance(node, ast.FunctionDef):
+                parsed_node_segment.append(
+                    ParsedCode(
+                        name=node.name, code_type="function", code=ast.unparse(node)
+                    )
+                )
+            elif isinstance(node, ast.ClassDef):
+                parsed_node_segment.append(
+                    ParsedCode(
+                        name=node.name, code_type="class", code=ast.unparse(node)
+                    )
+                )
+            parsed_nodes.extend(parsed_node_segment)
+        return parsed_nodes
