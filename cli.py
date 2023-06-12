@@ -2,13 +2,9 @@
 
 # Initialize and run code extractor
 import argparse
-import os
-import pickle
 from pathlib import Path
 
-from code_manager.code_extractor import CodeExtractor
 from code_manager.code_manager import CodeManager
-from code_manager.code_processor import CodeProcessor
 from serach_service import SearchService
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
