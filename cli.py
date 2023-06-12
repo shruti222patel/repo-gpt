@@ -2,13 +2,10 @@
 
 # Initialize and run code extractor
 import argparse
-import os
-import pickle
 from pathlib import Path
 
-from code_manager.code_extractor import CodeExtractor
 from code_manager.code_manager import CodeManager
-from code_manager.code_processor import CodeProcessor
+from serach_service import SearchService
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
@@ -51,7 +48,8 @@ def main():
         manager = CodeManager(root_path, output_path)
         manager.setup()
     elif args.command == "search":
-        simple_search_pickle(args.query, args.pickle_path)
+        search_service = SearchService(args.pickle_path)
+        search_service.simple_search(args.query, args.pickle_path)
 
 
 if __name__ == "__main__":
