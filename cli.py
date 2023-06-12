@@ -49,7 +49,8 @@ def main():
         manager.setup()
     elif args.command == "search":
         search_service = SearchService(args.pickle_path)
-        search_service.simple_search(args.query, args.pickle_path)
+        # search_service.simple_search(args.query)
+        search_service.semantic_search(args.query)
 
 
 if __name__ == "__main__":

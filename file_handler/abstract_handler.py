@@ -1,13 +1,18 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Generator, TypeVar
+from typing import List, TypeVar
 
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
-CodeBlock = namedtuple("CodeBlock", ["code", "function_name", "filepath", "checksum"])
+# code_type is either "function" or "class"
+CodeBlock = namedtuple(
+    "CodeBlock", ["code", "code_type", "name", "filepath", "checksum"]
+)
+
+ParsedCode = namedtuple("ParsedCode", ["name", "code_type", "code"])
 
 
 class AbstractHandler(ABC):
     @abstractmethod
-    def extract_code(self, filepath) -> Generator[CodeBlock, None, None]:
+    def extract_code(self, filepath) -> List[ParsedCode]:
         pass
