@@ -11,7 +11,7 @@ class SearchService:
         with open(pickle_path, "rb") as f:
             self.df = pickle.load(f)
 
-    def simple_search_pickle(self, query: str):
+    def simple_search(self, query: str):
         # Simple query logic: print the rows where 'code' column contains the query string
         matches = self.df[self.df["code"].str.contains(query)]
         print(matches)

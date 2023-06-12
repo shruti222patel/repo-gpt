@@ -3,7 +3,7 @@ Search your code repository using GPT3.5 or GPT4.
 
 ## Contributing
 ### Setup
-1. Install python `3.10` and latest version of [poetry](https://python-poetry.org/docs/#installing-with-pipx)
+1. Install python `3.11` and latest version of [poetry](https://python-poetry.org/docs/#installing-with-pipx)
    1. `pyenv` is a good way to manage python versions if you need to have more than 1 on your computer
 2. Create a `.env` file in the repo with the following format:
 ```shell
