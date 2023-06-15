@@ -2,6 +2,7 @@ import pickle
 from pathlib import Path
 from pprint import pprint
 
+from rich.markdown import Markdown
 from rich.syntax import Syntax
 from scipy import spatial
 from tqdm import tqdm
@@ -25,7 +26,10 @@ class SearchService:
 
     def semantic_search(self, code_query: str):
         similar_code_df = self._semantic_search_similar_code(code_query)
+        self._pretty_print_code(similar_code_df)
+        return similar_code_df
 
+    def _pretty_print_code(self, similar_code_df):
         n_lines = 7
         if pprint:
             for r in similar_code_df.iterrows():
@@ -41,11 +45,10 @@ class SearchService:
                     "\n".join(r[1].code.split("\n")[:n_lines]), "python"
                 )  # TODO: make this dynamic
                 console.print(syntax)
-        return similar_code_df
 
     def _semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
-        print("Searching for similar code...")
+        console.print("Searching for similar code...")
         self.df["similarities"] = self.df["code_embedding"].progress_apply(
             lambda x: spatial.distance.cosine(x, embedding)
         )
@@ -56,11 +59,18 @@ class SearchService:
 
     def question_answer(self, question: str):
         similar_code_df = self._semantic_search_similar_code(question)
+        self._pretty_print_code(similar_code_df)
 
         # TODO: add code to only send X amount of tokens to OpenAI
-
         # concatenate all the code blocks into one string
         code = "\n".join(similar_code_df["code"].tolist())
 
+        console.print("")
+
+        console.print("Asking 'GPT3.5' your question...")
         # an example question about the 2022 Olympics
-        return self.openai_service.get_answer(question, code)
+        ans = self.openai_service.get_answer(question, code)
+
+        ans_md = Markdown(ans)
+        console.print("🤖 Answer from `GPT3.5` 🤖")
+        console.print(ans_md)

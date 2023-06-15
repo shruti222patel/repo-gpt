@@ -18,7 +18,7 @@ EMBEDDING_MODEL = "text-embedding-ada-002"
 
 
 class OpenAIService:
-    @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
+    # @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_answer(self, query: str, code: str):
         query = f"""Use the code below to answer the subsequent question. If the answer cannot be found, write "I don't know."
         ```
@@ -37,8 +37,7 @@ class OpenAIService:
             model=GPT_MODEL,
             temperature=0,
         )
-
-        return response.choices[0].text
+        return response.choices[0]["message"]["content"]
 
     def _retry_on_exception(self, func: Callable[..., Any], *args, **kwargs):
         for retry in range(MAX_RETRIES):

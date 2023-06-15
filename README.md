@@ -47,7 +47,7 @@ export OPENAI_API_KEY=<insert your openai key>
 * [ ] Add tests
 * [ ] Add CI/CD
 * [ ] Prettify output
+* [ ] Add readme section about how folks can contribute parsers for their own languages
+* [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
 * [ ] Add SQL file handler
 * [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
-* [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
-* [ ] Add support for other languages...(depending on feature requests folks make)
