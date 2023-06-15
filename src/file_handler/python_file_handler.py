@@ -1,6 +1,7 @@
-import ast
 from pathlib import Path
 from typing import List
+
+from redbaron import RedBaron
 
 from file_handler.abstract_handler import AbstractHandler, ParsedCode
 from file_handler.handler_registry import register_handler
@@ -25,30 +26,25 @@ class PythonFileHandler(AbstractHandler):
         return "\n".join(ret)
 
     def extract_code(self, filepath: Path) -> List[ParsedCode]:
-        with open(filepath, "r") as source_code:
+        # with open(filename, "r", encoding="utf-8") as file:
+        #     code = RedBaron(file.read())
+        with open(filepath, "r", encoding="utf-8") as source_code:
             try:
-                tree = ast.parse(source_code.read())
-                return self.parse_tree(tree)
+                code = RedBaron(source_code.read())
+                return self.parse_tree(code)
             except Exception as e:
                 print(f"Failed to parse file {filepath}: {e}")
 
     def parse_tree(self, tree):
-        if ast.iter_child_nodes(tree) is None:
-            return []
         parsed_nodes = []
-        for node in ast.iter_child_nodes(tree):
-            parsed_node_segment = self.parse_tree(node)
-            if isinstance(node, ast.FunctionDef):
-                parsed_node_segment.append(
-                    ParsedCode(
-                        name=node.name, code_type="function", code=ast.unparse(node)
-                    )
+        # Loop through all functions and classes in the Python file
+        for node in tree.find_all(("def", "class")):
+            if node.type == "def":
+                parsed_nodes.append(
+                    ParsedCode(name=node.name, code_type="function", code=node.dumps())
                 )
-            elif isinstance(node, ast.ClassDef):
-                parsed_node_segment.append(
-                    ParsedCode(
-                        name=node.name, code_type="class", code=ast.unparse(node)
-                    )
+            elif node.type == "class":
+                parsed_nodes.append(
+                    ParsedCode(name=node.name, code_type="class", code=node.dumps())
                 )
-            parsed_nodes.extend(parsed_node_segment)
         return parsed_nodes
