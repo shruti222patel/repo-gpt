@@ -1,6 +1,5 @@
 import hashlib
 import os
-import pickle
 from pathlib import Path
 from typing import List, Type
 
@@ -8,8 +7,8 @@ import pandas as pd
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
+from file_handler import handler_registry
 from file_handler.abstract_handler import CodeBlock, FileHandler
-from file_handler.handler_registry import handler_registry
 from file_handler.python_file_handler import PythonFileHandler
 from utils import logger
 
@@ -23,7 +22,7 @@ class CodeExtractor:
 
     def get_handler(self, filepath: str) -> Type[FileHandler]:
         _, file_extension = os.path.splitext(filepath)
-        handler_class = handler_registry.get(file_extension)
+        handler_class = self.handler_mapping.get(file_extension)
         if handler_class is None:
             print(
                 f"No handler for files with extension {file_extension}. Skipping file {filepath}"
@@ -69,18 +68,29 @@ class CodeExtractor:
         else:
             return []
 
-    def extract_functions(self) -> List[CodeBlock]:
+    def extract_functions(self, embedding_code_file_checksums: dict) -> List[CodeBlock]:
         code_files = self.extract_code_files()
         code_blocks = []
-        for code_file in code_files:
-            logger.info(f"Extracting functions from {code_file}")
-            file_code_blocks = self.extract_functions_from_file(code_file)
+        for code_filepath in code_files:
+            file_checksum = self.generate_md5(code_filepath)
+            if file_checksum in embedding_code_file_checksums:
+                print(f"🟡 Skipping -- file unmodified {code_filepath}")
+                continue
+            file_code_blocks = self.extract_functions_from_file(
+                code_filepath, file_checksum
+            )
+            if len(file_code_blocks) == 0:
+                print(f"🟡 Skipping -- no functions or classes found {code_filepath}")
+            else:
+                print(
+                    f"🟢 Extracted {len(file_code_blocks)} functions from {code_filepath}"
+                )
             code_blocks.extend(file_code_blocks)
-            logger.info(f"Extracted {len(file_code_blocks)} functions from {code_file}")
         return code_blocks
 
-    def extract_functions_from_file(self, filepath: str) -> List[CodeBlock]:
-        file_checksum = self.generate_md5(filepath)
+    def extract_functions_from_file(
+        self, filepath: str, file_checksum: str
+    ) -> List[CodeBlock]:
         handler = self.get_handler(filepath)
         code_blocks = []
         if handler:
@@ -92,19 +102,8 @@ class CodeExtractor:
                         code_type=parsed.code_type,
                         name=parsed.name,
                         filepath=filepath,
-                        checksum=file_checksum,
+                        file_checksum=file_checksum,
                     )
                     for parsed in parsed_code
                 ]
         return code_blocks
-
-    def load_data(self):
-        if os.path.exists(self.output_path):
-            with open(self.output_path, "rb") as f:
-                data = pickle.load(f)
-            df = pd.DataFrame(data)
-            print("Data loaded from file.")
-        else:
-            df = pd.DataFrame()
-            print("File does not exist. Created an empty DataFrame.")
-        return df

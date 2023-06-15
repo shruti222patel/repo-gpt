@@ -6,7 +6,7 @@ FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
 # code_type is either "function" or "class"
 CodeBlock = namedtuple(
-    "CodeBlock", ["code", "code_type", "name", "filepath", "checksum"]
+    "CodeBlock", ["code", "code_type", "name", "filepath", "file_checksum"]
 )
 
 ParsedCode = namedtuple("ParsedCode", ["name", "code_type", "code"])

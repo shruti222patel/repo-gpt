@@ -40,6 +40,18 @@ def main():
         default=CODE_EMBEDDING_FILE_PATH,
     )
 
+    # Sub-command to ask a question to the model
+    parser_query = subparsers.add_parser(
+        "query", help="Ask a question about the code to the model"
+    )
+    parser_query.add_argument("question", type=str, help="Question to ask")
+    parser_query.add_argument(
+        "--pickle_path",
+        type=str,
+        help="Path of the pickled DataFrame to search in",
+        default=CODE_EMBEDDING_FILE_PATH,
+    )
+
     args = parser.parse_args()
 
     if args.command == "setup":
@@ -49,8 +61,13 @@ def main():
         manager.setup()
     elif args.command == "search":
         search_service = SearchService(args.pickle_path)
-        # search_service.simple_search(args.query)
-        search_service.semantic_search(args.query)
+        # search_service.simple_search(args.query) # simple search
+        search_service.semantic_search(args.query)  # semantic search
+    elif args.command == "query":
+        search_service = SearchService(args.pickle_path)
+        search_service.question_answer(args.question)
+    else:
+        parser.print_help()
 
 
 if __name__ == "__main__":
