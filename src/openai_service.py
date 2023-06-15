@@ -30,7 +30,7 @@ class OpenAIService:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful world-class Python developer and technical writer specializing in understanding code and explaining it clearly and concisely. You answer questions about codebases.",
+                    "content": "You are a helpful world-class Python developer and technical writer specializing in understanding code and explaining it clearly. You answer questions about codebases.",
                 },
                 {"role": "user", "content": query},
             ],

@@ -14,6 +14,7 @@ It will create a folder called `.repo_gpt` and save the code embeddings there.
 ```shell
 repo-gpt setup
 ```
+Also, you can re-run the command above as many times as you want and repo-gpt will only add/update embeddings for new files or changed files.
 
 Then, you can search for semantically similar code in your codebase using the following command:
 ```shell
