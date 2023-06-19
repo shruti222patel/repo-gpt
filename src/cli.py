@@ -1,6 +1,5 @@
 #!./venv/bin/python
 
-# Initialize and run code extractor
 import argparse
 from pathlib import Path
 
@@ -52,6 +51,16 @@ def main():
         default=CODE_EMBEDDING_FILE_PATH,
     )
 
+    # Sub-command to analyze a file
+    analyze_file = subparsers.add_parser("analyze", help="Analyze a file")
+    analyze_file.add_argument("file_path", type=str, help="File to analyze")
+    analyze_file.add_argument(
+        "--pickle_path",
+        type=str,
+        help="Path of the pickled DataFrame to search in",
+        default=CODE_EMBEDDING_FILE_PATH,
+    )
+
     args = parser.parse_args()
 
     if args.command == "setup":
@@ -66,6 +75,9 @@ def main():
     elif args.command == "query":
         search_service = SearchService(args.pickle_path)
         search_service.question_answer(args.question)
+    elif args.command == "analyze":
+        search_service = SearchService(args.pickle_path)
+        search_service.analyze_file(args.file_path)
     else:
         parser.print_help()
 

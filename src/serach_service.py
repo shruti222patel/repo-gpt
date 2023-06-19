@@ -71,6 +71,20 @@ class SearchService:
         # an example question about the 2022 Olympics
         ans = self.openai_service.get_answer(question, code)
 
+        console.print("🤖 Answer from `GPT3.5` 🤖")
+        console.print(ans_md)
+
+    def analyze_file(self, file_path: str):
+        with open(file_path, "r") as f:
+            code = f.read()
+        console.print("Analyzing your code...")
+        ans = self.openai_service.get_answer(
+            "Please explain the following code. Review what each element of the "
+            "code is doing precisely and what the author's intentions may have "
+            "been. Organize your explanation as a markdown-formatted, bulleted list.",
+            code,
+            system_prompt=self.openai_service.ANALYSIS_SYSTEM_PROMPT,
+        )
         ans_md = Markdown(ans)
         console.print("🤖 Answer from `GPT3.5` 🤖")
         console.print(ans_md)
