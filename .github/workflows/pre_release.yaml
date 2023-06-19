@@ -1,0 +1,36 @@
+name: Pre Release
+on:
+  workflow_dispatch:
+
+jobs:
+  test_pypi_release:
+    runs-on: ubuntu-latest
+    environment: pre_release
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y
+
+      - name: Update PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build project for distribution
+        run: poetry build
+
+      - run: poetry config repositories.test-pypi https://test.pypi.org/legacy/
+
+      - run: poetry config pypi-token.test-pypi ${{ secrets.PYPI_TOKEN }}
+
+      - name: Publish to PyPI
+        run: poetry publish -r test-pypi

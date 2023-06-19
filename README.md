@@ -46,7 +46,7 @@ export OPENAI_API_KEY=<insert your openai key>
 ## TODO
 * [ ] Publish to pypi
 * [ ] Add tests
-* [ ] Add CI/CD
+* [X] Add CI/CD
 * [ ] Prettify output
 * [ ] Add readme section about how folks can contribute parsers for their own languages
 * [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT

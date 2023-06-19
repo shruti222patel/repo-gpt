@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
-python = "~3.11"
+python = "^3.8"
 pandas = "^2.0.2"
 numpy = "^1.24.3"
 halo = "^0.0.31"
