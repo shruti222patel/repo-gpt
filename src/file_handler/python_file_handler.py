@@ -18,8 +18,6 @@ class PythonFileHandler(AbstractHandler):
         return code[len("class ") : code.index(":")]
 
     def extract_code(self, filepath: Path) -> List[ParsedCode]:
-        # with open(filename, "r", encoding="utf-8") as file:
-        #     code = RedBaron(file.read())
         with open(filepath, "r", encoding="utf-8") as source_code:
             try:
                 code = RedBaron(source_code.read())
@@ -35,32 +33,33 @@ class PythonFileHandler(AbstractHandler):
             node_fst = node.fst()
             name = node_fst.get("name")
             if node.type == "def":
-                parsed_nodes.append(
-                    ParsedCode(
-                        name=name,
-                        code_type="function",
-                        code=f"# {filepath.name}\n{node.dumps()}",
-                    )
-                )
+                parsed_nodes.append(self.get_function_parsed_code(node))
             elif node.type == "class":
-                parsed_nodes.append(
-                    ParsedCode(
-                        name=name,
-                        code_type="class",
-                        code=f"# {filepath.name}\n{self.summarize_class(node)}",
-                    )
-                )
+                parsed_nodes.append(self.get_class_and_method_parsed_code(node))
         return parsed_nodes
+
+    def get_function_parsed_code(self, function_node) -> ParsedCode:
+        node_fst = function_node.fst()
+        name = node_fst.get("name")
+        return ParsedCode(
+            name=name,
+            code_type="function",
+            code=function_node.dumps(),
+        )
+
+    def get_class_and_method_parsed_code(self, class_node) -> ParsedCode:
+        node_fst = class_node.fst()
+        name = node_fst.get("name")
+        return ParsedCode(
+            name=name,
+            code_type="class",
+            code=self.summarize_class(class_node),
+        )
 
     def summarize_class(self, class_node) -> str:
         summaries = []
 
         class_summary = [f"class {class_node.name}:"]
-
-        # # Summarize class properties (direct assignments)
-        # property_nodes = class_node.find_all('assignment')
-        # for property_node in property_nodes:
-        #     class_summary.append(f"    {property_node.target} = {property_node.dumps()}")
 
         # Summarize class methods
         function_nodes = class_node.find_all("def")

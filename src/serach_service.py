@@ -38,7 +38,7 @@ class SearchService:
                     str(r[1].filepath)
                     + ":"
                     + str(r[1].name)
-                    + "  score="
+                    + "  distance="
                     + str(round(r[1].similarities, 3))
                 )
                 syntax = Syntax(
@@ -53,7 +53,7 @@ class SearchService:
             lambda x: spatial.distance.cosine(x, embedding)
         )
 
-        return self.df.sort_values("similarities", ascending=False).head(
+        return self.df.sort_values("similarities", ascending=True).head(
             matches_to_return
         )
 
