@@ -13,6 +13,9 @@ def main():
     parser = argparse.ArgumentParser(description="Code extractor and searcher")
     subparsers = parser.add_subparsers(dest="command")
 
+    def print_help(*args):
+        parser.print_help()
+
     # Sub-command to run code extraction and processing
     parser_run = subparsers.add_parser(
         "setup", help="Run code extraction and processing"
@@ -60,6 +63,9 @@ def main():
         help="Path of the pickled DataFrame to search in",
         default=CODE_EMBEDDING_FILE_PATH,
     )
+
+    parser_help = subparsers.add_parser("help", help="Show this help message")
+    parser_help.set_defaults(func=print_help)
 
     args = parser.parse_args()
 
