@@ -3,6 +3,7 @@ import os
 import time
 from typing import Any, Callable
 
+import numpy as np
 import openai as openai
 from tenacity import (  # for exponential backoff
     retry,
@@ -68,4 +69,4 @@ class OpenAIService:
                 "Invalid response from OpenAI API: 'data' field missing or empty, or 'embedding' field missing"
             )
 
-        return response["data"][0]["embedding"]
+        return np.asarray(response["data"][0]["embedding"], dtype=np.float32)

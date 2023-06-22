@@ -5,6 +5,7 @@ from pprint import pprint
 from rich.markdown import Markdown
 from rich.syntax import Syntax
 from scipy import spatial
+from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 
 from console import console
@@ -50,10 +51,10 @@ class SearchService:
         embedding = self.openai_service.get_embedding(query)
         console.print("Searching for similar code...")
         self.df["similarities"] = self.df["code_embedding"].progress_apply(
-            lambda x: spatial.distance.cosine(x, embedding)
+            lambda x: x.dot(embedding)
         )
 
-        return self.df.sort_values("similarities", ascending=True).head(
+        return self.df.sort_values("similarities", ascending=False).head(
             matches_to_return
         )
 
@@ -70,7 +71,7 @@ class SearchService:
         console.print("Asking 'GPT3.5' your question...")
         # an example question about the 2022 Olympics
         ans = self.openai_service.get_answer(question, code)
-
+        ans_md = Markdown(ans)
         console.print("🤖 Answer from `GPT3.5` 🤖")
         console.print(ans_md)
 
