@@ -1,46 +1,57 @@
-import os
-from pathlib import Path
-
 import pytest
 
-# Initialize the handler
 from src.repo_gpt.file_handler.abstract_handler import ParsedCode
 from src.repo_gpt.file_handler.python_file_handler import PythonFileHandler
 
 handler = PythonFileHandler()
 
 
-script_dir = Path(os.path.dirname(os.path.realpath(__file__)))
+def test_normal_operation(tmp_path):
+    # Test Python file containing well-structured functions
+    p = tmp_path / "well_structured_python_file.py"
+    p.write_text(
+        """
+    def hello_world():
+        print("Hello, world!")
 
-
-def test_normal_operation():
-    # Test Python file containing well-structured functions and classes
-    parsed_code = handler.extract_code(
-        script_dir / Path("./python_files/well_structured_python_file.py")
+    class TestClass:
+        def test_method(self):
+            pass
+    """
     )
+    parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
     assert all(isinstance(code, ParsedCode) for code in parsed_code)
 
     # Test Python file with no functions or classes
-    parsed_code = handler.extract_code(
-        script_dir / Path("./python_files/no_function_class_python_file.py")
+    p = tmp_path / "no_function_class_python_file.py"
+    p.write_text(
+        """
+    x = 10
+    y = 20
+    z = x + y
+    """
     )
+    parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
     assert len(parsed_code) == 0
 
 
-def test_edge_cases():
+def test_edge_cases(tmp_path):
     # Test empty Python file
-    parsed_code = handler.extract_code(
-        script_dir / Path("./python_files/empty_python_file.py")
-    )
+    p = tmp_path / "empty_python_file.py"
+    p.write_text("")
+    parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
     assert len(parsed_code) == 0
 
     # Test non-Python file
+    p = tmp_path / "non_python_file.txt"
+    p.write_text("This is a text file, not a Python file.")
     with pytest.raises(Exception):
-        handler.extract_code(script_dir / Path("./python_files/non_python_file.txt"))
+        handler.extract_code(p)
 
     # Test non-existent file
+    p = tmp_path / "non_existent_file.py"
     with pytest.raises(FileNotFoundError):
-        handler.extract_code(script_dir / Path("./python_files/non_existent_file.py"))
+        handler.extract_code(p)
