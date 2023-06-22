@@ -7,7 +7,6 @@ from file_handler.abstract_handler import AbstractHandler, ParsedCode
 from file_handler.handler_registry import register_handler
 
 
-@register_handler(".py")
 class PythonFileHandler(AbstractHandler):
     def get_function_name(self, code):
         assert code.startswith("def ")

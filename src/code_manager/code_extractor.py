@@ -3,32 +3,24 @@ import os
 from pathlib import Path
 from typing import List, Type
 
-import pandas as pd
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
 from file_handler.abstract_handler import CodeBlock, FileHandler
+from file_handler.python_file_handler import PythonFileHandler
 from utils import logger
-
-handler_registry = {}
-
-
-def register_handler(ext):
-    def decorator(cls):
-        handler_registry[ext] = cls
-        return cls
-
-    return decorator
 
 
 class CodeExtractor:
+    HANDLER_MAPPING = {".py": PythonFileHandler}
+
     def __init__(self, code_root_path: Path, output_path: Path):
         self.code_root_path = code_root_path
         self.output_path = output_path
 
     def get_handler(self, filepath: str) -> Type[FileHandler]:
         _, file_extension = os.path.splitext(filepath)
-        handler_class = handler_registry.get(file_extension)
+        handler_class = self.HANDLER_MAPPING.get(file_extension)
         if handler_class is None:
             print(
                 f"No handler for files with extension {file_extension}. Skipping file {filepath}"
