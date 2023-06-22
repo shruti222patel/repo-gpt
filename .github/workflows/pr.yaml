@@ -38,5 +38,5 @@ jobs:
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.0
 
-#      - name: Run tests
-#        run: poetry run pytest
+      - name: Run tests
+        run: poetry run pytest

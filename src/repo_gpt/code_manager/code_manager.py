@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-from code_manager.code_extractor import CodeExtractor
-from code_manager.code_processor import CodeProcessor
+from .code_extractor import CodeExtractor
+from .code_processor import CodeProcessor
 
 tqdm.pandas()
 

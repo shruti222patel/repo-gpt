@@ -3,8 +3,8 @@ from typing import List
 import pandas as pd
 from tqdm import tqdm
 
-from file_handler.abstract_handler import CodeBlock
-from openai_service import OpenAIService
+from ..file_handler.abstract_handler import CodeBlock
+from ..openai_service import OpenAIService
 
 tqdm.pandas()
 

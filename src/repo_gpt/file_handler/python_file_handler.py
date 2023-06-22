@@ -3,7 +3,7 @@ from typing import List
 
 from redbaron import RedBaron
 
-from file_handler.abstract_handler import AbstractHandler, ParsedCode
+from .abstract_handler import AbstractHandler, ParsedCode
 
 
 class PythonFileHandler(AbstractHandler):

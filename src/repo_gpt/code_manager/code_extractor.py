@@ -6,9 +6,9 @@ from typing import List, Type
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
-from file_handler.abstract_handler import CodeBlock, FileHandler
-from file_handler.python_file_handler import PythonFileHandler
-from utils import logger
+from ..file_handler.abstract_handler import CodeBlock, FileHandler
+from ..file_handler.python_file_handler import PythonFileHandler
+from ..utils import logger
 
 
 class CodeExtractor:

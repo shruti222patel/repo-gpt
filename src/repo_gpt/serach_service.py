@@ -6,8 +6,8 @@ from rich.markdown import Markdown
 from rich.syntax import Syntax
 from tqdm import tqdm
 
-from console import console
-from openai_service import OpenAIService
+from .console import console
+from .openai_service import OpenAIService
 
 tqdm.pandas()
 

@@ -5,7 +5,7 @@ description = "Search your code repository using GPT3.5 or GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
 readme = "README.md"
-packages = [{include = "src"}]
+packages = [{include = "repo_gpt", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
@@ -25,8 +25,11 @@ pre-commit = "^3.3.2"
 exceptiongroup = { version="^1.1.1", markers="python_version <= '3.10'" }
 
 [tool.poetry.scripts]
-repo-gpt = "src.cli:main"
+repo-gpt = "repo_gpt.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+python_paths = ["src"]

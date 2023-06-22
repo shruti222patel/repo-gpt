@@ -3,8 +3,8 @@
 import argparse
 from pathlib import Path
 
-from code_manager.code_manager import CodeManager
-from serach_service import SearchService
+from .code_manager.code_manager import CodeManager
+from .serach_service import SearchService
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
