@@ -75,7 +75,7 @@ Example:
 
 ```bash
 repo-gpt setup --root_path ./my_project
-repo-gpt search "How to open a file in Python?"
+repo-gpt search "extract handler"
 repo-gpt query "What does the function `calculate_sum` do?"
 repo-gpt analyze ./my_project/main.py
 ```
