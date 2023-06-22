@@ -4,7 +4,6 @@ from typing import List
 from redbaron import RedBaron
 
 from file_handler.abstract_handler import AbstractHandler, ParsedCode
-from file_handler.handler_registry import register_handler
 
 
 class PythonFileHandler(AbstractHandler):
