@@ -4,8 +4,6 @@ from pprint import pprint
 
 from rich.markdown import Markdown
 from rich.syntax import Syntax
-from scipy import spatial
-from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
 
 from console import console
