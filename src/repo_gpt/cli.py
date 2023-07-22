@@ -64,6 +64,32 @@ def main():
         default=CODE_EMBEDDING_FILE_PATH,
     )
 
+    # Sub-command to analyze a file
+    add_test = subparsers.add_parser("add-test", help="Add tests for existing function")
+    add_test.add_argument(
+        "function_name", type=str, help="Name of the function you'd like to test"
+    )
+    add_test.add_argument(
+        "--file_name",
+        type=str,
+        help="Name of the file the function is found in. This is helpful if there are many functions with the same "
+        "name. If this isn't specified, I assume the function name is unique and I'll create tests for the first "
+        "matching function I find. When a file_name is passed, I will assume the function name is unique in the "
+        "file, and write tests for the first function I find with the same name in the file.",
+        default="",
+    )
+    add_test.add_argument(
+        "--test_save_file_path",
+        type=str,
+        help="Filepath to save the generated tests to",
+    )
+    add_test.add_argument(
+        "--pickle_path",
+        type=str,
+        help="Path of the pickled DataFrame to search in",
+        default=CODE_EMBEDDING_FILE_PATH,
+    )
+
     parser_help = subparsers.add_parser("help", help="Show this help message")
     parser_help.set_defaults(func=print_help)
 
@@ -84,6 +110,33 @@ def main():
     elif args.command == "analyze":
         search_service = SearchService(args.pickle_path)
         search_service.analyze_file(args.file_path)
+    elif args.command == "add-test":
+        # Look for the function name in the embedding file
+        search_service = SearchService(args.pickle_path)
+        function_matches = search_service.find_function_match(args.function_name)
+
+        # LOOP -- 3 times before erroring out
+        # Prompt GPT to create tests
+
+        # Save tests -- ideally we only save tests once we've validated they work
+
+        # Run Tests to evaluate they work
+
+        # If there is an error, prompt gpt to self-reflect on the error and pass that reflection into the next test
+
+    elif args.command == "add-code":
+        # Prompt GPT to create tests
+
+        # LOOP -- 3 times before erroring out
+        # Prompt GPT to write code
+
+        # Evaluate code based on tests
+
+        # Self reflect
+        pass
+    elif args.command == "chat-mode":
+        # Give access to code modification functions
+        pass
     else:
         parser.print_help()
 

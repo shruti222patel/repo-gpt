@@ -7,6 +7,7 @@ from rich.syntax import Syntax
 from tqdm import tqdm
 
 from .console import console
+from .file_handler.abstract_handler import CODE_TYPE_FUNCTION
 from .openai_service import OpenAIService
 
 tqdm.pandas()
@@ -27,6 +28,12 @@ class SearchService:
         similar_code_df = self._semantic_search_similar_code(code_query)
         self._pretty_print_code(similar_code_df)
         return similar_code_df
+
+    def find_function_match(self, function_name: str):
+        matches = self.df[
+            self.df["name"] == function_name, self.df["type"] == CODE_TYPE_FUNCTION
+        ]
+        return matches.iloc[0]
 
     def _pretty_print_code(self, similar_code_df):
         n_lines = 7

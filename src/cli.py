@@ -6,6 +6,8 @@ from pathlib import Path
 from code_manager.code_manager import CodeManager
 from serach_service import SearchService
 
+from .code_manager.code_extractor import CodeExtractor
+
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
 
@@ -61,6 +63,21 @@ def main():
         default=CODE_EMBEDDING_FILE_PATH,
     )
 
+    # Sub-command to analyze a file
+    add_test = subparsers.add_parser("add-test", help="Add tests for existing function")
+    add_test.add_argument(
+        "function_name", type=str, help="Name of the function you'd like to test"
+    )
+    add_test.add_argument(
+        "--file_name",
+        type=str,
+        help="Name of the file the function is found in. This is helpful if there are many functions with the same "
+        "name. If this isn't specified, I assume the function name is unique and I'll create tests for the first "
+        "matching function I find. When a file_name is passed, I will assume the function name is unique in the "
+        "file, and write tests for the first function I find with the same name in the file.",
+        default="",
+    )
+
     args = parser.parse_args()
 
     if args.command == "setup":
@@ -78,6 +95,9 @@ def main():
     elif args.command == "analyze":
         search_service = SearchService(args.pickle_path)
         search_service.analyze_file(args.file_path)
+    elif args.command == "add_test":
+        code_extractor = CodeExtractor("./", CODE_EMBEDDING_FILE_PATH)
+        # Look for the function name in the embedding file
     else:
         parser.print_help()
 
