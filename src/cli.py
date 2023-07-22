@@ -3,8 +3,10 @@
 import argparse
 from pathlib import Path
 
-from .code_manager.code_manager import CodeManager
-from .serach_service import SearchService
+from code_manager.code_manager import CodeManager
+from serach_service import SearchService
+
+from .code_manager.code_extractor import CodeExtractor
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
@@ -12,9 +14,6 @@ CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 def main():
     parser = argparse.ArgumentParser(description="Code extractor and searcher")
     subparsers = parser.add_subparsers(dest="command")
-
-    def print_help(*args):
-        parser.print_help()
 
     # Sub-command to run code extraction and processing
     parser_run = subparsers.add_parser(
@@ -78,20 +77,6 @@ def main():
         "file, and write tests for the first function I find with the same name in the file.",
         default="",
     )
-    add_test.add_argument(
-        "--test_save_file_path",
-        type=str,
-        help="Filepath to save the generated tests to",
-    )
-    add_test.add_argument(
-        "--pickle_path",
-        type=str,
-        help="Path of the pickled DataFrame to search in",
-        default=CODE_EMBEDDING_FILE_PATH,
-    )
-
-    parser_help = subparsers.add_parser("help", help="Show this help message")
-    parser_help.set_defaults(func=print_help)
 
     args = parser.parse_args()
 
@@ -110,33 +95,9 @@ def main():
     elif args.command == "analyze":
         search_service = SearchService(args.pickle_path)
         search_service.analyze_file(args.file_path)
-    elif args.command == "add-test":
+    elif args.command == "add_test":
+        code_extractor = CodeExtractor("./", CODE_EMBEDDING_FILE_PATH)
         # Look for the function name in the embedding file
-        search_service = SearchService(args.pickle_path)
-        function_matches = search_service.find_function_match(args.function_name)
-
-        # LOOP -- 3 times before erroring out
-        # Prompt GPT to create tests
-
-        # Save tests -- ideally we only save tests once we've validated they work
-
-        # Run Tests to evaluate they work
-
-        # If there is an error, prompt gpt to self-reflect on the error and pass that reflection into the next test
-
-    elif args.command == "add-code":
-        # Prompt GPT to create tests
-
-        # LOOP -- 3 times before erroring out
-        # Prompt GPT to write code
-
-        # Evaluate code based on tests
-
-        # Self reflect
-        pass
-    elif args.command == "chat-mode":
-        # Give access to code modification functions
-        pass
     else:
         parser.print_help()
 
