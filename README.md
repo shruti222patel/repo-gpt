@@ -1,6 +1,6 @@
 # Repo GPT
 
-Repo-GPT is a Python CLI tool designed to utilize the power of OpenAI's GPT-3 model. It facilitates the process of code analysis and search within your repositories.
+Repo-GPT is a Python CLI tool designed to utilize the power of OpenAI's GPT-3 model. It facilitates the process of code analysis and search within your repositories. 🚀🌟
 
 ![Repo-GPT in action](./imgs/example_output.png)
 
