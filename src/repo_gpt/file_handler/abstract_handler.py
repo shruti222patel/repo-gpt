@@ -11,6 +11,9 @@ CodeBlock = namedtuple(
 
 ParsedCode = namedtuple("ParsedCode", ["name", "code_type", "code"])
 
+CODE_TYPE_FUNCTION = "function"
+CODE_TYPE_CLASS = "class"
+
 
 class AbstractHandler(ABC):
     @abstractmethod

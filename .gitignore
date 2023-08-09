@@ -232,3 +232,4 @@ fabric.properties
 
 # Can't be having folks committing the crime of sharing their creds
 .env
+expt/
