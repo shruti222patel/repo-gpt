@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-gpt"
-version = "0.1.0"
+version = "0.1.1"
 description = "Search your code repository using GPT3.5 or GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
@@ -31,6 +31,7 @@ openai = "^0.27.8"
 rich = "^13.4.1"
 redbaron = "^0.9.2"
 tenacity = "^8.2.2"
+sqlglot = "^16.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"

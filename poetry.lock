@@ -1035,6 +1035,20 @@ files = [
 ]
 
 [[package]]
+name = "sqlglot"
+version = "16.4.0"
+description = "An easily customizable SQL parser and transpiler"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sqlglot-16.4.0-py3-none-any.whl", hash = "sha256:f1e70b42a02a6a81024240be861a6b2dfcfbe27c60053ab81f9b7927009e1897"},
+    {file = "sqlglot-16.4.0.tar.gz", hash = "sha256:b160dbd95d5f785fd5de0ed903ebf24c46896a71e56915bbb5a7d19c5eeb7ae1"},
+]
+
+[package.extras]
+dev = ["autoflake", "black", "duckdb (>=0.6)", "isort", "mypy (>=0.990)", "pandas", "pdoc", "pre-commit", "pyspark", "python-dateutil"]
+
+[[package]]
 name = "tenacity"
 version = "8.2.2"
 description = "Retry code until it succeeds"
@@ -1242,4 +1256,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "275dc87a374438013d8d819c21b8abbc10a628d38297592854df96e5c2718b6a"
+content-hash = "74ece7aa00c6497ac78f40140424475d71e434d6b8895475a6ca3605e8957d56"

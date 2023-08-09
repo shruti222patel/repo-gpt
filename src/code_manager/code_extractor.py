@@ -3,18 +3,20 @@ import os
 from pathlib import Path
 from typing import List, Type
 
-import pandas as pd
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 
-from file_handler import handler_registry
 from file_handler.abstract_handler import CodeBlock, FileHandler
 from file_handler.python_file_handler import PythonFileHandler
+from file_handler.sql_file_handler import SqlFileHandler
 from utils import logger
 
 
 class CodeExtractor:
-    handler_mapping = {".py": PythonFileHandler}
+    handler_mapping = {
+        ".py": PythonFileHandler,
+        ".sql": SqlFileHandler,
+    }
 
     def __init__(self, code_root_path: Path, output_path: Path):
         self.code_root_path = code_root_path
