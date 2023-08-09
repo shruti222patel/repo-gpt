@@ -1,8 +1,8 @@
 import pytest
 
 # Create a handler that we can use in our tests
-from file_handler.abstract_handler import ParsedCode
-from file_handler.sql_file_handler import SqlFileHandler
+from repo_gpt.file_handler.abstract_handler import ParsedCode
+from repo_gpt.file_handler.sql_file_handler import SqlFileHandler
 
 # Assume that sqlglot raises a SQLGlotError for incorrect syntax
 

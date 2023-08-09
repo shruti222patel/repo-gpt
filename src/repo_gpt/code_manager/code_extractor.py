@@ -12,7 +12,10 @@ from ..utils import logger
 
 
 class CodeExtractor:
-    HANDLER_MAPPING = {".py": PythonFileHandler}
+    HANDLER_MAPPING = {
+        ".py": PythonFileHandler,
+        ".sql": SqlFileHandler,
+    }
 
     def __init__(self, code_root_path: Path, output_path: Path):
         self.code_root_path = code_root_path
