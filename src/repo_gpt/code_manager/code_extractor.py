@@ -8,6 +8,8 @@ from pathspec.patterns import GitWildMatchPattern
 
 from ..file_handler.abstract_handler import CodeBlock, FileHandler
 from ..file_handler.python_file_handler import PythonFileHandler
+from ..file_handler.generic_code_file_handler import GenericCodeFileHandler
+from ..file_handler.sql_file_handler import SqlFileHandler
 from ..utils import logger
 
 
@@ -15,6 +17,7 @@ class CodeExtractor:
     HANDLER_MAPPING = {
         ".py": PythonFileHandler,
         ".sql": SqlFileHandler,
+        ".php": GenericCodeFileHandler,
     }
 
     def __init__(self, code_root_path: Path, output_path: Path):
