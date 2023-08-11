@@ -1,6 +1,6 @@
 import pytest
 
-from src.repo_gpt.file_handler.abstract_handler import ParsedCode
+from src.repo_gpt.file_handler.abstract_handler import CodeType, ParsedCode
 from src.repo_gpt.file_handler.generic_code_file_handler import PythonFileHandler
 
 handler = PythonFileHandler()
@@ -14,7 +14,7 @@ def test_normal_operation(tmp_path):
     def hello_world():
         print("Hello, world!")
 
-    class TestClass:
+    class TestClass(BaseClass):
         \"""This is a test class. \"""
         def test_method(self):
             \"""This is a test method. \"""
@@ -29,18 +29,21 @@ def test_normal_operation(tmp_path):
         [
             ParsedCode(
                 name="hello_world",
-                code_type="function",
+                code_type=CodeType.FUNCTION,
                 code='def hello_world():\n        print("Hello, world!")',
+                inputs=(),
             ),
             ParsedCode(
                 name="TestClass",
-                code_type="class",
-                code="""class: TestClass\n    method: test_method\n    parameters: (self)\n    code: ...\n""",
+                code_type=CodeType.CLASS,
+                code="""class: TestClass\n    parent classes: ('BaseClass',)\n    method: test_method\n    parameters: ('self',)\n    code: ...\n""",
+                inputs=("BaseClass",),
             ),
             ParsedCode(
                 name="test_method",
-                code_type="function",
+                code_type=CodeType.FUNCTION,
                 code="""def test_method(self):\n            \"""This is a test method. \"""\n            pass""",
+                inputs=("self",),
             ),
         ]
     )

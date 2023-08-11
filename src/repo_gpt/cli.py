@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from .code_manager.code_manager import CodeManager
+from .openai_service import OpenAIService
 from .search_service import SearchService
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
@@ -83,6 +84,12 @@ def main():
         type=str,
         help="Filepath to save the generated tests to",
     )
+
+    add_test.add_argument(
+        "--testing_package",
+        type=str,
+        help="Package/library GPT should use to write tests (e.g. pytest, unittest, etc.)",
+    )
     add_test.add_argument(
         "--pickle_path",
         type=str,
@@ -95,35 +102,31 @@ def main():
 
     args = parser.parse_args()
 
+    # Services
+    openai_service = OpenAIService()
+    search_service = SearchService(args.pickle_path, openai_service)
+
     if args.command == "setup":
         root_path = Path(args.root_path)
         output_path = Path(args.output_path)
         manager = CodeManager(root_path, output_path)
         manager.setup()
     elif args.command == "search":
-        search_service = SearchService(args.pickle_path)
         # search_service.simple_search(args.query) # simple search
         search_service.semantic_search(args.query)  # semantic search
     elif args.command == "query":
-        search_service = SearchService(args.pickle_path)
         search_service.question_answer(args.question)
     elif args.command == "analyze":
-        search_service = SearchService(args.pickle_path)
         search_service.analyze_file(args.file_path)
     elif args.command == "add-test":
         # Look for the function name in the embedding file
-        search_service = SearchService(args.pickle_path)
-        function_matches = search_service.find_function_match(args.function_name)
-
-        # LOOP -- 3 times before erroring out
-        # Prompt GPT to create tests
-
-        # Save tests -- ideally we only save tests once we've validated they work
-
-        # Run Tests to evaluate they work
-
-        # If there is an error, prompt gpt to self-reflect on the error and pass that reflection into the next test
-
+        add_tests(
+            search_service,
+            openai_service,
+            args.function_name,
+            args.test_save_file_path,
+            args.testing_package,
+        )
     elif args.command == "add-code":
         # Prompt GPT to create tests
 
@@ -134,11 +137,33 @@ def main():
 
         # Self reflect
         pass
-    elif args.command == "chat-mode":
+    elif args.command == "coder-mode":
         # Give access to code modification functions
         pass
     else:
         parser.print_help()
+
+
+def add_tests(
+    search_service, openai_service, function_name, test_save_file_path, testing_package
+):
+    # Find the function via the search service
+    function_to_test = search_service.search(function_name)
+    # Check if function is found
+    if function_to_test is None:
+        print(f"Function {function_name} not found.")
+        return
+
+    # Save gpt history
+    # Ask gpt to explain the function
+    code = openai_service.unit_tests_from_function(
+        function_to_test, unit_test_package=testing_package
+    )  # TODO: add language & test framework
+
+    # Save code to file
+    if test_save_file_path is not None:
+        with open(test_save_file_path, "w") as f:
+            f.write(code)
 
 
 if __name__ == "__main__":

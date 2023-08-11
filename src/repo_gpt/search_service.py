@@ -14,10 +14,10 @@ tqdm.pandas()
 
 
 class SearchService:
-    def __init__(self, pickle_path: Path):
+    def __init__(self, pickle_path: Path, openai_service: OpenAIService):
         with open(pickle_path, "rb") as f:
             self.df = pickle.load(f)
-        self.openai_service = OpenAIService()
+        self.openai_service = openai_service
 
     def simple_search(self, query: str):
         # Simple query logic: print the rows where 'code' column contains the query string

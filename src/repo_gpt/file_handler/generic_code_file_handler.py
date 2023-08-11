@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from tree_sitter_languages import get_language, get_parser
 
-from .abstract_handler import AbstractHandler, ParsedCode
+from .abstract_handler import AbstractHandler, CodeType, ParsedCode
 
 
 class GenericCodeFileHandler(AbstractHandler):
@@ -11,18 +11,23 @@ class GenericCodeFileHandler(AbstractHandler):
         self,
         lang: str,
         function_name_node_type: str,
-        class_name_type: str,
+        class_name_node_type: str,
         function_node_type: str,
         class_node_type: str,
         method_node_type: str,
         class_internal_node_type: str,
+        parent_class_node_type: str,
+        function_parameters_node_type: str = "parameters",
     ):
         self.function_name_node_type = function_name_node_type
-        self.class_name_node_type = class_name_type
+        self.class_name_node_type = class_name_node_type
         self.function_node_type = function_node_type
         self.class_node_type = class_node_type
         self.method_node_type = method_node_type
         self.class_internal_node_type = class_internal_node_type
+        self.parent_class_node_type = parent_class_node_type
+        self.function_parameters_node_type = function_parameters_node_type
+
         self.language = get_language(lang)
         self.parser = get_parser(lang)
         self.parser.set_language(self.language)
@@ -61,36 +66,61 @@ class GenericCodeFileHandler(AbstractHandler):
         name = self.get_function_name(function_node)
         return ParsedCode(
             name=name,
-            code_type="function",
+            code_type=CodeType.FUNCTION,
             code=function_node.text.decode("utf8"),
+            inputs=self.get_function_parameters(function_node),
         )
 
     def get_class_and_method_parsed_code(self, class_node) -> List[ParsedCode]:
         parsed_codes = []
         class_name = self.get_class_name(class_node)
-        class_summary = [f"class: {class_name}"]
+        parent_classes = self.get_parent_classes(class_node)
+        class_summary = [f"class: {class_name}\n    parent classes: {parent_classes}"]
         for node in class_node.named_children:
             if node.type == self.class_internal_node_type:
                 for n in node.named_children:
                     if n.type == self.method_node_type:
                         # function
                         parsed_code = self.get_function_parsed_code(n)
-                        parameters = ""
                         # TODO figure out how to get docstring
-                        for _n in n.named_children:
-                            if _n.type == "parameters":
-                                parameters = _n.text.decode("utf8")
                         parsed_codes.append(parsed_code)
                         class_summary.append(
-                            f"    method: {parsed_code.name}\n    parameters: {parameters}\n    code: ...\n"
+                            f"    method: {parsed_code.name}\n    parameters: {self.get_function_parameters(n)}\n    code: ...\n"
                         )
 
         name = self.get_class_name(class_node)
         parsed_codes.append(
-            ParsedCode(name=name, code_type="class", code="\n".join(class_summary))
+            ParsedCode(
+                name=name,
+                code_type=CodeType.CLASS,
+                code="\n".join(class_summary),
+                inputs=parent_classes,
+            )
         )
 
         return parsed_codes
+
+    def get_parent_classes(self, class_node) -> Tuple[str, ...]:
+        for child in class_node.children:
+            # If we found the base_classes node
+            if child.type == self.parent_class_node_type:
+                return tuple(
+                    grandchild.text.decode("utf8")
+                    for grandchild in child.named_children
+                    if grandchild.type == self.class_name_node_type
+                )
+        return ()
+
+    def get_function_parameters(self, function_node) -> Tuple[str, ...]:
+        for child in function_node.children:
+            # If we found the parameters node
+            if child.type == self.function_parameters_node_type:
+                return tuple(
+                    grandchild.text.decode("utf8")
+                    for grandchild in child.named_children
+                    if grandchild.type == self.function_name_node_type
+                )
+        return ()
 
 
 class PHPFileHandler(GenericCodeFileHandler):
@@ -98,11 +128,12 @@ class PHPFileHandler(GenericCodeFileHandler):
         super().__init__(
             lang="php",
             function_name_node_type="name",
-            class_name_type="name",
+            class_name_node_type="name",
             function_node_type="function_definition",
             class_node_type="class_declaration",
             method_node_type="method_declaration",
             class_internal_node_type="declaration_list",
+            parent_class_node_type="base_clause",
         )
 
 
@@ -111,9 +142,10 @@ class PythonFileHandler(GenericCodeFileHandler):
         super().__init__(
             lang="python",
             function_name_node_type="identifier",
-            class_name_type="identifier",
+            class_name_node_type="identifier",
             function_node_type="function_definition",
             class_node_type="class_definition",
             method_node_type="function_definition",
             class_internal_node_type="block",
+            parent_class_node_type="argument_list",
         )

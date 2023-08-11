@@ -21,6 +21,7 @@ class SqlFileHandler:
                         name=str(i),
                         code_type=type(statement).__name__,
                         code=str(statement),
+                        inputs=(),  # TODO: should this include ctes?
                     )
                 )
 

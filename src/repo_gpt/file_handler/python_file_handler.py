@@ -3,12 +3,7 @@ from typing import List
 
 from redbaron import RedBaron
 
-from .abstract_handler import (
-    CODE_TYPE_CLASS,
-    CODE_TYPE_FUNCTION,
-    AbstractHandler,
-    ParsedCode,
-)
+from .abstract_handler import AbstractHandler, CodeType, ParsedCode
 
 
 class PythonFileHandler(AbstractHandler):
@@ -34,15 +29,17 @@ class PythonFileHandler(AbstractHandler):
     def get_function_parsed_code(self, function_node) -> ParsedCode:
         return ParsedCode(
             name=function_node.name,
-            code_type=CODE_TYPE_FUNCTION,
+            code_type=CodeType.FUNCTION,
             code=function_node.dumps(),
+            inputs=(),  # TODO function_node.arguments.dumps(),
         )
 
     def get_class_and_method_parsed_code(self, class_node) -> ParsedCode:
         return ParsedCode(
             name=class_node.name,
-            code_type=CODE_TYPE_CLASS,
+            code_type=CodeType.CLASS,
             code=self.summarize_class(class_node),
+            inputs=(),  # TODO: Get class inputs
         )
 
     def summarize_class(self, class_node) -> str:

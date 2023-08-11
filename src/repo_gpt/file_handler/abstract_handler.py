@@ -1,18 +1,32 @@
 from abc import ABC, abstractmethod
-from collections import namedtuple
-from typing import List, TypeVar
+from dataclasses import dataclass
+from enum import Enum
+from typing import List, Tuple, TypeVar
 
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
-# code_type is either "function" or "class"
-CodeBlock = namedtuple(
-    "CodeBlock", ["code", "code_type", "name", "filepath", "file_checksum"]
-)
 
-ParsedCode = namedtuple("ParsedCode", ["name", "code_type", "code"])
+class CodeType(Enum):
+    FUNCTION = "function"
+    CLASS = "class"
 
-CODE_TYPE_FUNCTION = "function"
-CODE_TYPE_CLASS = "class"
+
+@dataclass(frozen=True)
+class CodeBlock:  # TODO add ParsedCode as a field so fields aren't repeated
+    code: str
+    code_type: CodeType
+    name: str
+    inputs: Tuple[str, ...]
+    filepath: str
+    file_checksum: str
+
+
+@dataclass(frozen=True)
+class ParsedCode:
+    name: str
+    code_type: CodeType
+    code: str
+    inputs: Tuple[str, ...]
 
 
 class AbstractHandler(ABC):

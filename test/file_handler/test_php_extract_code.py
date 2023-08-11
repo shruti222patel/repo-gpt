@@ -1,6 +1,6 @@
 import pytest
 
-from src.repo_gpt.file_handler.abstract_handler import ParsedCode
+from src.repo_gpt.file_handler.abstract_handler import CodeType, ParsedCode
 from src.repo_gpt.file_handler.generic_code_file_handler import PHPFileHandler
 
 handler = PHPFileHandler()
@@ -31,6 +31,7 @@ def pretty_format_diff(diff):
 def test_normal_operation(tmp_path):
     # Test PHP file containing well-structured functions and classes
     p = tmp_path / "well_structured_php_file.php"
+    # TODO: add base class TestClass extends from
     p.write_text(
         """
     <?php
@@ -38,7 +39,7 @@ def test_normal_operation(tmp_path):
         echo "Hello, world!";
     }
 
-    class TestClass {
+    class TestClass extends BaseClass {
         /* This is a test class. */
         public function testMethod() {
             /* This is a test method. */
@@ -52,18 +53,21 @@ def test_normal_operation(tmp_path):
     expected_parsed_code = [
         ParsedCode(
             name="helloWorld",
-            code_type="function",
+            code_type=CodeType.FUNCTION,
             code='function helloWorld() {\n        echo "Hello, world!";\n    }',
+            inputs=(),
         ),
         ParsedCode(
             name="TestClass",
-            code_type="class",
-            code="class: TestClass\n    method: testMethod\n    parameters: \n    code: ...\n",
+            code_type=CodeType.CLASS,
+            code="class: TestClass\n    parent classes: ('BaseClass',)\n    method: testMethod\n    parameters: ()\n    code: ...\n",
+            inputs=("BaseClass",),
         ),
         ParsedCode(
             name="testMethod",
-            code_type="function",
+            code_type=CodeType.FUNCTION,
             code="public function testMethod() {\n            /* This is a test method. */\n            return;\n        }",
+            inputs=(),
         ),
     ]
 

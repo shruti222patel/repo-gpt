@@ -20,7 +20,7 @@ def test_single_sql_statement(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1", code_type="Select", code="SELECT * FROM table"
+        name="1", code_type="Select", code="SELECT * FROM table", inputs=()
     )
 
 
@@ -34,12 +34,12 @@ def test_multiple_sql_statements(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 2
     assert result[0] == ParsedCode(
-        name="1", code_type="Select", code="SELECT * FROM table"
+        name="1", code_type="Select", code="SELECT * FROM table", inputs=()
     )
     # Bug with sqlglot: the second statement is not parsed correctly
     # assert result[1] == ParsedCode(name="2", code_type="Insert", code="INSERT INTO table VALUES (1, 2, 3)")
     assert result[1] == ParsedCode(
-        name="2", code_type="Insert", code="INSERT INTO VALUES (1, 2, 3)"
+        name="2", code_type="Insert", code="INSERT INTO VALUES (1, 2, 3)", inputs=()
     )
 
 
@@ -53,7 +53,10 @@ def test_nested_sql_statements(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1", code_type="Select", code="SELECT * FROM (SELECT id FROM table)"
+        name="1",
+        code_type="Select",
+        code="SELECT * FROM (SELECT id FROM table)",
+        inputs=(),
     )
 
 
@@ -69,12 +72,12 @@ def test_comments_in_sql_file(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 2
     assert result[0] == ParsedCode(
-        name="1", code_type="Select", code="SELECT * FROM table"
+        name="1", code_type="Select", code="SELECT * FROM table", inputs=()
     )
     # Bug with sqlglot: the second statement is not parsed correctly
     # assert result[1] == ParsedCode(name="2", code_type="Insert", code="INSERT INTO table VALUES (1, 2, 3)")
     assert result[1] == ParsedCode(
-        name="2", code_type="Insert", code="INSERT INTO VALUES (1, 2, 3)"
+        name="2", code_type="Insert", code="INSERT INTO VALUES (1, 2, 3)", inputs=()
     )
 
 
@@ -88,5 +91,5 @@ def test_incorrect_sql_syntax(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1", code_type="Select", code="SELECT FROM table"
+        name="1", code_type="Select", code="SELECT FROM table", inputs=()
     )
