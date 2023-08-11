@@ -5,18 +5,35 @@ from typing import List, Type
 
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
+from pygments.lexers import ClassNotFound, get_lexer_for_filename
 
 from ..file_handler.abstract_handler import CodeBlock, FileHandler
-from ..file_handler.python_file_handler import PythonFileHandler
+from ..file_handler.generic_code_file_handler import PHPFileHandler, PythonFileHandler
+from ..file_handler.sql_file_handler import SqlFileHandler
 from ..utils import logger
 
 
 class CodeExtractor:
-    HANDLER_MAPPING = {".py": PythonFileHandler}
+    HANDLER_MAPPING = {
+        ".py": PythonFileHandler,
+        ".sql": SqlFileHandler,
+        ".php": PHPFileHandler,
+    }
 
     def __init__(self, code_root_path: Path, output_path: Path):
         self.code_root_path = code_root_path
         self.output_path = output_path
+
+    def _detect_language(self, file_path):
+        """Detect the coding language based on the file's extension using Pygments."""
+        try:
+            lexer = get_lexer_for_filename(file_path)
+            return lexer.name
+        except ClassNotFound:
+            # This exception is raised if Pygments can't find a lexer based on the file's extension.
+            return (
+                f"Unknown language for file extension: {os.path.splitext(file_path)[1]}"
+            )
 
     def get_handler(self, filepath: str) -> Type[FileHandler]:
         _, file_extension = os.path.splitext(filepath)

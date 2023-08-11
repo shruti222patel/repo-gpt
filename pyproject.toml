@@ -32,6 +32,8 @@ rich = "^13.4.1"
 redbaron = "^0.9.2"
 tenacity = "^8.2.2"
 sqlglot = "^16.4.0"
+tree-sitter-languages = "^1.7.0"
+pygments = "^2.16.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
