@@ -39,6 +39,7 @@ pygments = "^2.16.1"
 pytest = "^7.3.2"
 pre-commit = "^3.3.2"
 exceptiongroup = { version="^1.1.1", markers="python_version <= '3.10'" }
+jupyterlab = "^4.0.4"
 
 [tool.poetry.scripts]
 repo-gpt = "repo_gpt.cli:main"
