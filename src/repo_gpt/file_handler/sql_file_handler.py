@@ -23,6 +23,7 @@ class SqlFileHandler:
                         code=str(statement),
                         summary=None,
                         inputs=None,  # TODO: should this include ctes?
+                        outputs=None,
                     )
                 )
 

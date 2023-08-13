@@ -31,7 +31,7 @@ EXPECTED_PHP_FUNCTION_PARSED_CODE = [
     ParsedCode(
         name="helloWorld",
         code_type=CodeType.FUNCTION,
-        code='function helloWorld() {\n    echo "Hello, world!";\n}',
+        code='function helloWorld(): string {\n    return "Hello, world!";\n}',
         inputs=None,
         summary=None,
         outputs=("string",),
@@ -42,7 +42,7 @@ EXPECTED_PHP_CLASS_PARSED_CODE = [
     ParsedCode(
         name="TestClass",
         code_type=CodeType.CLASS,
-        summary="class: TestClass\n    parent classes: ('BaseClass',)\n    method: testMethod\n    parameters: None\n    code: ...\n",
+        summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: testMethod\n        input parameters: None\n        output parameters: None\n        code: ...\n""",
         inputs=("BaseClass",),
         code="""class TestClass extends BaseClass {\n    /* This is a test class. */\n    public function testMethod() {\n        /* This is a test method. */\n        return;\n    }\n}""",
         outputs=None,

@@ -17,6 +17,7 @@ class GenericCodeFileHandler(AbstractHandler):
         method_node_type: str,
         class_internal_node_type: str,
         parent_class_node_type: str,
+        function_output_node_type: str = "output",
         function_parameters_node_type: str = "parameters",
     ):
         self.function_name_node_type = function_name_node_type
@@ -26,6 +27,7 @@ class GenericCodeFileHandler(AbstractHandler):
         self.method_node_type = method_node_type
         self.class_internal_node_type = class_internal_node_type
         self.parent_class_node_type = parent_class_node_type
+        self.function_output_node_type = function_output_node_type
         self.function_parameters_node_type = function_parameters_node_type
 
         self.language = get_language(lang)
@@ -64,19 +66,21 @@ class GenericCodeFileHandler(AbstractHandler):
 
     def get_function_parsed_code(self, function_node, is_method=False) -> ParsedCode:
         name = self.get_function_name(function_node)
+        input_params, output_params = self.get_function_parameters(function_node)
         return ParsedCode(
             name=name,
             code_type=CodeType.METHOD if is_method else CodeType.FUNCTION,
             code=function_node.text.decode("utf8"),
             summary=None,
-            inputs=self.get_function_parameters(function_node),
+            inputs=input_params,
+            outputs=output_params,
         )
 
     def get_class_and_method_parsed_code(self, class_node) -> List[ParsedCode]:
         parsed_codes = []
         class_name = self.get_class_name(class_node)
         parent_classes = self.get_parent_classes(class_node)
-        class_summary = [f"class: {class_name}\n    parent classes: {parent_classes}"]
+        class_summary = [f"class: {class_name}\n    parent classes: {parent_classes}\n"]
         for node in class_node.named_children:
             if node.type == self.class_internal_node_type:
                 for n in node.named_children:
@@ -85,8 +89,9 @@ class GenericCodeFileHandler(AbstractHandler):
                         parsed_code = self.get_function_parsed_code(n, is_method=True)
                         # TODO figure out how to get docstring
                         parsed_codes.append(parsed_code)
+                        input_params, output_params = self.get_function_parameters(n)
                         class_summary.append(
-                            f"    method: {parsed_code.name}\n    parameters: {self.get_function_parameters(n)}\n    code: ...\n"
+                            f"    method: {parsed_code.name}\n        input parameters: {input_params}\n        output parameters: {output_params}\n        code: ...\n"
                         )
 
         name = self.get_class_name(class_node)
@@ -97,6 +102,7 @@ class GenericCodeFileHandler(AbstractHandler):
                 code=class_node.text.decode("utf8"),
                 summary="\n".join(class_summary),
                 inputs=parent_classes,
+                outputs=None,
             )
         )
 
@@ -113,16 +119,27 @@ class GenericCodeFileHandler(AbstractHandler):
                 )
         return None
 
-    def get_function_parameters(self, function_node) -> Tuple[str, ...]:
+    def get_function_parameters(
+        self, function_node
+    ) -> (Tuple[str, ...], Tuple[str, ...]):
+        input_params, output_params = None, None
         for child in function_node.children:
             # If we found the parameters node
-            if child.type == self.function_parameters_node_type:
-                return tuple(
+            if child.type in self.function_parameters_node_type:
+                input_params = tuple(
                     grandchild.text.decode("utf8")
                     for grandchild in child.named_children
-                    if grandchild.type == self.function_name_node_type
+                    # if grandchild.type == self.function_name_node_type
                 )
-        return None
+            if child.type == self.function_output_node_type:
+                output_params = tuple(
+                    grandchild.text.decode("utf8")
+                    for grandchild in child.named_children
+                )
+        return (
+            input_params if input_params and len(input_params) > 0 else None,
+            output_params if output_params and len(output_params) > 0 else None,
+        )
 
 
 class PHPFileHandler(GenericCodeFileHandler):
@@ -136,6 +153,8 @@ class PHPFileHandler(GenericCodeFileHandler):
             method_node_type="method_declaration",
             class_internal_node_type="declaration_list",
             parent_class_node_type="base_clause",
+            function_output_node_type="union_type",
+            function_parameters_node_type="function_parameters_node_type",
         )
 
 
@@ -150,4 +169,5 @@ class PythonFileHandler(GenericCodeFileHandler):
             method_node_type="function_definition",
             class_internal_node_type="block",
             parent_class_node_type="argument_list",
+            function_output_node_type="type",
         )
