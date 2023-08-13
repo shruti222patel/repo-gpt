@@ -7,7 +7,7 @@ from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 from pygments.lexers import ClassNotFound, get_lexer_for_filename
 
-from ..file_handler.abstract_handler import CodeBlock, FileHandler
+from ..file_handler.abstract_handler import FileHandler, ParsedCode
 from ..file_handler.generic_code_file_handler import PHPFileHandler, PythonFileHandler
 from ..file_handler.sql_file_handler import SqlFileHandler
 from ..utils import logger
@@ -83,7 +83,9 @@ class CodeExtractor:
         else:
             return []
 
-    def extract_functions(self, embedding_code_file_checksums: dict) -> List[CodeBlock]:
+    def extract_functions(
+        self, embedding_code_file_checksums: dict
+    ) -> List[ParsedCode]:
         code_files = self.extract_code_files()
         code_blocks = []
         for code_filepath in code_files:
@@ -105,20 +107,11 @@ class CodeExtractor:
 
     def extract_functions_from_file(
         self, filepath: str, file_checksum: str
-    ) -> List[CodeBlock]:
+    ) -> List[ParsedCode]:
         handler = self.get_handler(filepath)
-        code_blocks = []
         if handler:
             parsed_code = handler().extract_code(filepath)
-            if parsed_code:
-                code_blocks = [
-                    CodeBlock(
-                        code=parsed.code,
-                        code_type=parsed.code_type,
-                        name=parsed.name,
-                        filepath=filepath,
-                        file_checksum=file_checksum,
-                    )
-                    for parsed in parsed_code
-                ]
-        return code_blocks
+            for code in parsed_code:
+                code.filepath = filepath
+                code.file_checksum = file_checksum
+        return parsed_code

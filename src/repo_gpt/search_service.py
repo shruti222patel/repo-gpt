@@ -7,7 +7,7 @@ from rich.syntax import Syntax
 from tqdm import tqdm
 
 from .console import console
-from .file_handler.abstract_handler import CODE_TYPE_FUNCTION
+from .file_handler.abstract_handler import CodeType
 from .openai_service import OpenAIService
 
 tqdm.pandas()
@@ -31,7 +31,7 @@ class SearchService:
 
     def find_function_match(self, function_name: str):
         matches = self.df[
-            self.df["name"] == function_name, self.df["type"] == CODE_TYPE_FUNCTION
+            self.df["name"] == function_name, self.df["type"] == CodeType.FUNCTION
         ]
         return matches.iloc[0]
 

@@ -9,24 +9,22 @@ FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 class CodeType(Enum):
     FUNCTION = "function"
     CLASS = "class"
+    METHOD = "method"
 
 
-@dataclass(frozen=True)
-class CodeBlock:  # TODO add ParsedCode as a field so fields aren't repeated
-    code: str
-    code_type: CodeType
-    name: str
-    inputs: Tuple[str, ...]
-    filepath: str
-    file_checksum: str
-
-
-@dataclass(frozen=True)
+@dataclass
 class ParsedCode:
     name: str
     code_type: CodeType
     code: str
-    inputs: Tuple[str, ...]
+    summary: str | None
+    inputs: Tuple[str, ...] | None
+    outputs: Tuple[str, ...] | str
+    filepath: str = None
+    file_checksum: str = None
+
+    def __lt__(self, other: "ParsedCode"):
+        return self.name < other.name
 
 
 class AbstractHandler(ABC):

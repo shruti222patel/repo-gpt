@@ -62,12 +62,13 @@ class GenericCodeFileHandler(AbstractHandler):
                 parsed_nodes.extend(self.get_class_and_method_parsed_code(node))
         return parsed_nodes
 
-    def get_function_parsed_code(self, function_node) -> ParsedCode:
+    def get_function_parsed_code(self, function_node, is_method=False) -> ParsedCode:
         name = self.get_function_name(function_node)
         return ParsedCode(
             name=name,
-            code_type=CodeType.FUNCTION,
+            code_type=CodeType.METHOD if is_method else CodeType.FUNCTION,
             code=function_node.text.decode("utf8"),
+            summary=None,
             inputs=self.get_function_parameters(function_node),
         )
 
@@ -81,7 +82,7 @@ class GenericCodeFileHandler(AbstractHandler):
                 for n in node.named_children:
                     if n.type == self.method_node_type:
                         # function
-                        parsed_code = self.get_function_parsed_code(n)
+                        parsed_code = self.get_function_parsed_code(n, is_method=True)
                         # TODO figure out how to get docstring
                         parsed_codes.append(parsed_code)
                         class_summary.append(
@@ -93,7 +94,8 @@ class GenericCodeFileHandler(AbstractHandler):
             ParsedCode(
                 name=name,
                 code_type=CodeType.CLASS,
-                code="\n".join(class_summary),
+                code=class_node.text.decode("utf8"),
+                summary="\n".join(class_summary),
                 inputs=parent_classes,
             )
         )
@@ -109,7 +111,7 @@ class GenericCodeFileHandler(AbstractHandler):
                     for grandchild in child.named_children
                     if grandchild.type == self.class_name_node_type
                 )
-        return ()
+        return None
 
     def get_function_parameters(self, function_node) -> Tuple[str, ...]:
         for child in function_node.children:
@@ -120,7 +122,7 @@ class GenericCodeFileHandler(AbstractHandler):
                     for grandchild in child.named_children
                     if grandchild.type == self.function_name_node_type
                 )
-        return ()
+        return None
 
 
 class PHPFileHandler(GenericCodeFileHandler):

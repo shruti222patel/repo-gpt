@@ -3,7 +3,7 @@ from typing import List
 import pandas as pd
 from tqdm import tqdm
 
-from ..file_handler.abstract_handler import CodeBlock
+from ..file_handler.abstract_handler import ParsedCode
 from ..openai_service import OpenAIService
 
 tqdm.pandas()
@@ -15,7 +15,7 @@ class CodeProcessor:
         self.code_root = code_root
         self.openai_service = OpenAIService()
 
-    def process(self, code_blocks: List[CodeBlock]):
+    def process(self, code_blocks: List[ParsedCode]):
         if len(code_blocks) == 0:
             print("No code blocks to process")
             return None

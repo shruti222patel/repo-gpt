@@ -104,7 +104,12 @@ def main():
 
     # Services
     openai_service = OpenAIService()
-    search_service = SearchService(args.pickle_path, openai_service)
+
+    search_service = (
+        SearchService(args.pickle_path, openai_service)
+        if args.command != "setup"
+        else None
+    )
 
     if args.command == "setup":
         root_path = Path(args.root_path)

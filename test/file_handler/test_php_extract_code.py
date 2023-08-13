@@ -5,83 +5,81 @@ from src.repo_gpt.file_handler.generic_code_file_handler import PHPFileHandler
 
 handler = PHPFileHandler()
 
+# Define input text for PHP
+SAMPLE_PHP_FUNCTION_INPUT_TEXT = """
+<?php
+function helloWorld(): string {
+    return "Hello, world!";
+}
+?>
+"""
 
-def pretty_format_diff(diff):
-    messages = []
-
-    for key, value in diff.items():
-        if key == "values_changed":
-            for subkey, detail in value.items():
-                old_value = detail["old_value"]
-                new_value = detail["new_value"]
-                messages.append(
-                    f"Value changed at {subkey}: {old_value} -> {new_value}"
-                )
-        elif key == "iterable_item_added":
-            for subkey, detail in value.items():
-                messages.append(f"Item added at {subkey}: {detail}")
-        elif key == "iterable_item_removed":
-            for subkey, detail in value.items():
-                messages.append(f"Item removed at {subkey}: {detail}")
-        # Add more cases for other types of differences as needed
-
-    return "\n".join(messages)
-
-
-def test_normal_operation(tmp_path):
-    # Test PHP file containing well-structured functions and classes
-    p = tmp_path / "well_structured_php_file.php"
-    # TODO: add base class TestClass extends from
-    p.write_text(
-        """
-    <?php
-    function helloWorld() {
-        echo "Hello, world!";
+SAMPLE_PHP_CLASS_INPUT_TEXT = """
+<?php
+class TestClass extends BaseClass {
+    /* This is a test class. */
+    public function testMethod() {
+        /* This is a test method. */
+        return;
     }
+}
+?>
+"""
 
-    class TestClass extends BaseClass {
-        /* This is a test class. */
-        public function testMethod() {
-            /* This is a test method. */
-            return;
-        }
-    ?>
-    """
-    )
+# Define expected parsed code for PHP
+EXPECTED_PHP_FUNCTION_PARSED_CODE = [
+    ParsedCode(
+        name="helloWorld",
+        code_type=CodeType.FUNCTION,
+        code='function helloWorld() {\n    echo "Hello, world!";\n}',
+        inputs=None,
+        summary=None,
+        outputs=("string",),
+    ),
+]
+
+EXPECTED_PHP_CLASS_PARSED_CODE = [
+    ParsedCode(
+        name="TestClass",
+        code_type=CodeType.CLASS,
+        summary="class: TestClass\n    parent classes: ('BaseClass',)\n    method: testMethod\n    parameters: None\n    code: ...\n",
+        inputs=("BaseClass",),
+        code="""class TestClass extends BaseClass {\n    /* This is a test class. */\n    public function testMethod() {\n        /* This is a test method. */\n        return;\n    }\n}""",
+        outputs=None,
+    ),
+    ParsedCode(
+        name="testMethod",
+        code_type=CodeType.METHOD,
+        code="public function testMethod() {\n        /* This is a test method. */\n        return;\n    }",
+        inputs=None,
+        summary=None,
+        outputs=None,
+    ),
+]
+
+
+# parameterize using extracted variables
+@pytest.mark.parametrize(
+    "input_text, expected_output",
+    [
+        (SAMPLE_PHP_FUNCTION_INPUT_TEXT, EXPECTED_PHP_FUNCTION_PARSED_CODE),
+        (SAMPLE_PHP_CLASS_INPUT_TEXT, EXPECTED_PHP_CLASS_PARSED_CODE),
+    ],
+)
+def test_php_normal_operation(tmp_path, input_text, expected_output):
+    p = tmp_path / "test_php_file.php"
+    p.write_text(input_text)
     parsed_code = handler.extract_code(p)
 
-    expected_parsed_code = [
-        ParsedCode(
-            name="helloWorld",
-            code_type=CodeType.FUNCTION,
-            code='function helloWorld() {\n        echo "Hello, world!";\n    }',
-            inputs=(),
-        ),
-        ParsedCode(
-            name="TestClass",
-            code_type=CodeType.CLASS,
-            code="class: TestClass\n    parent classes: ('BaseClass',)\n    method: testMethod\n    parameters: ()\n    code: ...\n",
-            inputs=("BaseClass",),
-        ),
-        ParsedCode(
-            name="testMethod",
-            code_type=CodeType.FUNCTION,
-            code="public function testMethod() {\n            /* This is a test method. */\n            return;\n        }",
-            inputs=(),
-        ),
-    ]
-
-    # Check if both lists are of type 'list' and contain objects of type 'ParsedCode'
     assert isinstance(parsed_code, list)
     assert all(isinstance(code, ParsedCode) for code in parsed_code)
+    parsed_code.sort(key=lambda x: x.name)
+    expected_output.sort(key=lambda x: x.name)
+    assert len(parsed_code) == len(expected_output)
+    assert parsed_code == expected_output
 
-    # Sort both parsed_code and expected_parsed_code by the 'name' attribute
-    sorted_parsed_code = sorted(parsed_code, key=lambda x: x.name)
-    sorted_expected_parsed_code = sorted(expected_parsed_code, key=lambda x: x.name)
 
-    for i, j in zip(sorted_parsed_code, sorted_expected_parsed_code):
-        assert i == j, f"Expected: {j}\nGot: {i}"
-
+def test_no_function_in_file(tmp_path):
     # Test PHP file with no functions or classes
     p = tmp_path / "no_function_class_php_file.php"
     p.write_text(
