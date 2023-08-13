@@ -17,6 +17,9 @@ MAX_RETRIES = 3
 
 GPT_MODEL = "gpt-3.5-turbo"
 EMBEDDING_MODEL = "text-embedding-ada-002"
+TEMPERATURE = (
+    0.4,
+)  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
 
 
 class OpenAIService:
@@ -42,7 +45,7 @@ class OpenAIService:
                 {"role": "user", "content": query},
             ],
             model=GPT_MODEL,
-            temperature=0,
+            temperature=TEMPERATURE,
         )
         return response.choices[0]["message"]["content"]
 
@@ -111,10 +114,10 @@ class OpenAIService:
         # unit testing package; use the name as it appears in the import statement
         approx_min_cases_to_cover: int = 7,  # minimum number of test case categories to cover (approximate)
         print_text: bool = False,  # optionally prints text; helpful for understanding the function & debugging
-        explain_model: str = "gpt-3.5-turbo",  # model used to generate text plans in step 1
-        plan_model: str = "gpt-3.5-turbo",  # model used to generate text plans in steps 2 and 2b
-        execute_model: str = "gpt-3.5-turbo",  # model used to generate code in step 3
-        temperature: float = 0.4,  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
+        explain_model: str = GPT_MODEL,  # model used to generate text plans in step 1
+        plan_model: str = GPT_MODEL,  # model used to generate text plans in steps 2 and 2b
+        execute_model: str = GPT_MODEL,  # model used to generate code in step 3
+        temperature: float = TEMPERATURE,
         reruns_if_fail: int = 1,
         # if the output code cannot be parsed, this will re-run the function up to N times
     ) -> str:
@@ -138,12 +141,12 @@ class OpenAIService:
         explain_messages = [explain_system_message, explain_user_message]
         if print_text:
             self.print_messages(explain_messages)
-
+        print("Generating explanation...")
         explanation_response = openai.ChatCompletion.create(
             model=explain_model,
             messages=explain_messages,
             temperature=temperature,
-            stream=True,
+            # stream=True,
         )
         explanation = ""
         for chunk in explanation_response:
@@ -210,6 +213,7 @@ To help unit test the function above, list diverse scenarios that the function s
             ]
             if print_text:
                 self.print_messages([elaboration_user_message])
+            print("Generating elaboration...")
             elaboration_response = openai.ChatCompletion.create(
                 model=plan_model,
                 messages=elaboration_messages,
@@ -271,6 +275,7 @@ import {unit_test_package}  # used for our unit tests
             if print_text:
                 self.print_messages([execute_system_message, execute_user_message])
 
+            print("Generating unit tests...")
             execute_response = openai.ChatCompletion.create(
                 model=execute_model,
                 messages=execute_messages,
@@ -286,7 +291,7 @@ import {unit_test_package}  # used for our unit tests
                     execution += delta["content"]
 
             # check the output for errors
-            code = execution.split("```python")[1].split("```")[0].strip()
+            code = execution.split(f"```{language}")[1].split("```")[0].strip()
             try:
                 ast.parse(code)  # TODO use treesitter instead
             except SyntaxError as e:

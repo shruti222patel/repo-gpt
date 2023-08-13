@@ -132,19 +132,6 @@ def main():
             args.test_save_file_path,
             args.testing_package,
         )
-    elif args.command == "add-code":
-        # Prompt GPT to create tests
-
-        # LOOP -- 3 times before erroring out
-        # Prompt GPT to write code
-
-        # Evaluate code based on tests
-
-        # Self reflect
-        pass
-    elif args.command == "coder-mode":
-        # Give access to code modification functions
-        pass
     else:
         parser.print_help()
 
@@ -153,7 +140,7 @@ def add_tests(
     search_service, openai_service, function_name, test_save_file_path, testing_package
 ):
     # Find the function via the search service
-    function_to_test = search_service.search(function_name)
+    function_to_test = search_service.find_function_match(function_name)
     # Check if function is found
     if function_to_test is None:
         print(f"Function {function_name} not found.")

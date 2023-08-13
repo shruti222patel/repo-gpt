@@ -29,11 +29,28 @@ class SearchService:
         self._pretty_print_code(similar_code_df)
         return similar_code_df
 
-    def find_function_match(self, function_name: str):
-        matches = self.df[
-            self.df["name"] == function_name, self.df["type"] == CodeType.FUNCTION
+    def find_function_match(self, function_name: str, class_name: str = None):
+        class_match = None
+        function_match = None
+
+        # If class_name is provided, look for class matches
+        if class_name:
+            class_matches = self.df[
+                (self.df["name"] == class_name)
+                & (self.df["code_type"] == CodeType.CLASS)
+            ]
+            if not class_matches.empty:
+                class_match = class_matches.iloc[0]
+
+        # Look for function matches
+        function_matches = self.df[
+            (self.df["name"] == function_name)
+            & (self.df["code_type"] == CodeType.FUNCTION)
         ]
-        return matches.iloc[0]
+        if not function_matches.empty:
+            function_match = function_matches.iloc[0]
+
+        return function_match, class_match
 
     def _pretty_print_code(self, similar_code_df):
         n_lines = 7
