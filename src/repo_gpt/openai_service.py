@@ -15,11 +15,11 @@ from tenacity import (  # for exponential backoff
 openai.api_key = os.environ["OPENAI_API_KEY"]
 MAX_RETRIES = 3
 
-GPT_MODEL = "gpt-3.5-turbo"
+GPT_MODEL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 TEMPERATURE = (
-    0.4,
-)  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
+    0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
+)
 
 
 class OpenAIService:
@@ -146,7 +146,7 @@ class OpenAIService:
             model=explain_model,
             messages=explain_messages,
             temperature=temperature,
-            # stream=True,
+            stream=True,
         )
         explanation = ""
         for chunk in explanation_response:

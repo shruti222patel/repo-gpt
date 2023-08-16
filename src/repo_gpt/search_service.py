@@ -1,7 +1,9 @@
 import pickle
 from pathlib import Path
 from pprint import pprint
+from typing import Tuple
 
+import pandas as pd
 from rich.markdown import Markdown
 from rich.syntax import Syntax
 from tqdm import tqdm
@@ -15,9 +17,17 @@ tqdm.pandas()
 
 class SearchService:
     def __init__(self, pickle_path: Path, openai_service: OpenAIService):
-        with open(pickle_path, "rb") as f:
-            self.df = pickle.load(f)
+        self.pickle_path = pickle_path
+        self.refresh_df()
         self.openai_service = openai_service
+
+    def refresh_df(self):
+        with open(self.pickle_path, "rb") as f:
+            self.df = pickle.load(f)
+            if self.df is None or self.df.empty:
+                raise Exception(
+                    "Dataframe is empty. Run `repo-gpt setup` to populate it."
+                )
 
     def simple_search(self, query: str):
         # Simple query logic: print the rows where 'code' column contains the query string
@@ -29,28 +39,29 @@ class SearchService:
         self._pretty_print_code(similar_code_df)
         return similar_code_df
 
-    def find_function_match(self, function_name: str, class_name: str = None):
-        class_match = None
-        function_match = None
+    def find_function_match(
+        self, function_name: str, class_name: str = None
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        print(f"Loaded dataframe with {len(self.df)} code blocks")
+        print(f"Searching for function {function_name}...")
 
         # If class_name is provided, look for class matches
-        if class_name:
-            class_matches = self.df[
+        class_matches = (
+            self.df[
                 (self.df["name"] == class_name)
-                & (self.df["code_type"] == CodeType.CLASS)
+                & (self.df["code_type"] == "CodeType.CLASS")
             ]
-            if not class_matches.empty:
-                class_match = class_matches.iloc[0]
+            if class_name
+            else None
+        )
 
         # Look for function matches
         function_matches = self.df[
             (self.df["name"] == function_name)
-            & (self.df["code_type"] == CodeType.FUNCTION)
+            # & ((self.df["code_type"] == "CodeType.FUNCTION") | (self.df["code_type"] == "CodeType.METHOD")) # TODO not sure why this doesn't work. I just need to switch to polars
         ]
-        if not function_matches.empty:
-            function_match = function_matches.iloc[0]
 
-        return function_match, class_match
+        return function_matches, class_matches
 
     def _pretty_print_code(self, similar_code_df):
         n_lines = 7

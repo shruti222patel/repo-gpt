@@ -1,6 +1,7 @@
 #!./venv/bin/python
 
 import argparse
+import os
 from pathlib import Path
 
 from .code_manager.code_manager import CodeManager
@@ -114,7 +115,7 @@ def main():
     if args.command == "setup":
         root_path = Path(args.root_path)
         output_path = Path(args.output_path)
-        manager = CodeManager(root_path, output_path)
+        manager = CodeManager(output_path, root_path)
         manager.setup()
     elif args.command == "search":
         # search_service.simple_search(args.query) # simple search
@@ -124,10 +125,12 @@ def main():
     elif args.command == "analyze":
         search_service.analyze_file(args.file_path)
     elif args.command == "add-test":
+        code_manager = CodeManager(args.pickle_path)
         # Look for the function name in the embedding file
         add_tests(
             search_service,
             openai_service,
+            code_manager,
             args.function_name,
             args.test_save_file_path,
             args.testing_package,
@@ -137,24 +140,57 @@ def main():
 
 
 def add_tests(
-    search_service, openai_service, function_name, test_save_file_path, testing_package
+    search_service,
+    openai_service,
+    code_manager,
+    function_name,
+    test_save_file_path,
+    testing_package,
 ):
+    # Check file path isn't a directory
+    if os.path.isdir(test_save_file_path):
+        print(
+            f"Error: {test_save_file_path} is a directory. Please specify a file path."
+        )
+        return
     # Find the function via the search service
-    function_to_test = search_service.find_function_match(function_name)
-    # Check if function is found
-    if function_to_test is None:
+    function_to_test_df, class_to_test_df = search_service.find_function_match(
+        function_name
+    )
+
+    if function_to_test_df.empty:
+        print(f"Function {function_name} not found.")
+        return
+
+    # Get the latest version of the function
+    checksum_filepath_dict = {
+        function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
+            "filepath"
+        ]
+    }
+    code_manager.parse_code_and_save_embeddings(checksum_filepath_dict)
+
+    search_service.refresh_df()
+    # Find the function again after refreshing the code & embeddings
+    function_to_test_df, class_to_test_df = search_service.find_function_match(
+        function_name
+    )
+
+    if function_to_test_df.empty:
         print(f"Function {function_name} not found.")
         return
 
     # Save gpt history
     # Ask gpt to explain the function
     code = openai_service.unit_tests_from_function(
-        function_to_test, unit_test_package=testing_package
-    )  # TODO: add language & test framework
+        function_to_test_df.iloc[0]["code"],
+        unit_test_package=testing_package,
+        print_text=True,
+    )  # TODO: add language & test framework from config file
 
     # Save code to file
     if test_save_file_path is not None:
-        with open(test_save_file_path, "w") as f:
+        with open(test_save_file_path, "a") as f:
             f.write(code)
 
 

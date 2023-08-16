@@ -44,6 +44,21 @@ class CodeExtractor:
             )
         return handler_class
 
+    def is_file_parsable(self, filepath: str) -> bool:
+        gitignore = self.get_gitignore()
+        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
+        handler_class = self.get_handler(filepath)
+        if handler_class is None or spec.match_file(filepath):
+            return False
+        return True
+
+    def is_dir_parsable(self, dirpath: str) -> bool:
+        gitignore = self.get_gitignore()
+        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
+        if spec.match_file(dirpath):
+            return False
+        return True
+
     def generate_md5(self, filepath: str, chunk_size: int = 4096) -> str:
         hash = hashlib.md5()
         with open(filepath, "rb") as f:
@@ -55,24 +70,18 @@ class CodeExtractor:
 
     def extract_code_files(self) -> List[str]:
         code_files = []
-        gitignore = self.get_gitignore()
-        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
-
         for root, dirs, files in os.walk(self.code_root_path):
             root_path = Path(root).relative_to(self.code_root_path)
 
             # Skip directories listed in .gitignore
             dirs[:] = [
-                d for d in dirs if not spec.match_file(os.path.join(root_path, d))
+                d for d in dirs if self.is_dir_parsable(os.path.join(root_path, d))
             ]
 
             for file in files:
-                if file.endswith(".py") and not spec.match_file(
-                    os.path.join(root_path, file)
-                ):
+                if self.is_file_parsable(file):
                     file_path = root_path / file
                     code_files.append(self.code_root_path / file_path)
-
         return code_files
 
     def get_gitignore(self) -> List[str]:
@@ -86,11 +95,19 @@ class CodeExtractor:
     def extract_functions(
         self, embedding_code_file_checksums: dict
     ) -> List[ParsedCode]:
-        code_files = self.extract_code_files()
+        code_files = (
+            self.extract_code_files()
+            if embedding_code_file_checksums is None
+            else embedding_code_file_checksums.values()
+        )
         code_blocks = []
         for code_filepath in code_files:
+            print(f"🟢 Processing {code_filepath}")
             file_checksum = self.generate_md5(code_filepath)
-            if file_checksum in embedding_code_file_checksums:
+            if (
+                embedding_code_file_checksums is not None
+                and file_checksum in embedding_code_file_checksums
+            ):
                 print(f"🟡 Skipping -- file unmodified {code_filepath}")
                 continue
             file_code_blocks = self.extract_functions_from_file(
