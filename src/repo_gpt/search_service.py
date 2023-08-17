@@ -1,22 +1,33 @@
 import pickle
 from pathlib import Path
-from pprint import pprint
+from typing import Tuple
 
+import pandas as pd
 from rich.markdown import Markdown
-from rich.syntax import Syntax
 from tqdm import tqdm
 
-from .console import console
+from .console import console, pretty_print_code
 from .openai_service import OpenAIService
 
 tqdm.pandas()
 
 
 class SearchService:
-    def __init__(self, pickle_path: Path):
-        with open(pickle_path, "rb") as f:
+    def __init__(
+        self, pickle_path: Path, openai_service: OpenAIService, language: str = "python"
+    ):
+        self.pickle_path = pickle_path
+        self.refresh_df()
+        self.openai_service = openai_service
+        self.language = language
+
+    def refresh_df(self):
+        with open(self.pickle_path, "rb") as f:
             self.df = pickle.load(f)
-        self.openai_service = OpenAIService()
+            if self.df is None or self.df.empty:
+                raise Exception(
+                    "Dataframe is empty. Run `repo-gpt setup` to populate it."
+                )
 
     def simple_search(self, query: str):
         # Simple query logic: print the rows where 'code' column contains the query string
@@ -25,25 +36,32 @@ class SearchService:
 
     def semantic_search(self, code_query: str):
         similar_code_df = self._semantic_search_similar_code(code_query)
-        self._pretty_print_code(similar_code_df)
+        pretty_print_code(similar_code_df, self.language)
         return similar_code_df
 
-    def _pretty_print_code(self, similar_code_df):
-        n_lines = 7
-        if pprint:
-            for r in similar_code_df.iterrows():
-                console.rule(f"[bold red]{str(r[1].name)}")
-                print(
-                    str(r[1].filepath)
-                    + ":"
-                    + str(r[1].name)
-                    + "  distance="
-                    + str(round(r[1].similarities, 3))
-                )
-                syntax = Syntax(
-                    "\n".join(r[1].code.split("\n")[:n_lines]), "python"
-                )  # TODO: make this dynamic
-                console.print(syntax)
+    def find_function_match(
+        self, function_name: str, class_name: str = None
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        print(f"Loaded dataframe with {len(self.df)} code blocks")
+        print(f"Searching for function {function_name}...")
+
+        # If class_name is provided, look for class matches
+        class_matches = (
+            self.df[
+                (self.df["name"] == class_name)
+                & (self.df["code_type"] == "CodeType.CLASS")
+            ]
+            if class_name
+            else None
+        )
+
+        # Look for function matches
+        function_matches = self.df[
+            (self.df["name"] == function_name)
+            # & ((self.df["code_type"] == "CodeType.FUNCTION") | (self.df["code_type"] == "CodeType.METHOD")) # TODO not sure why this doesn't work. I just need to switch to polars
+        ]
+
+        return function_matches, class_matches
 
     def _semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
@@ -58,7 +76,7 @@ class SearchService:
 
     def question_answer(self, question: str):
         similar_code_df = self._semantic_search_similar_code(question)
-        self._pretty_print_code(similar_code_df)
+        pretty_print_code(similar_code_df, self.language)
 
         # TODO: add code to only send X amount of tokens to OpenAI
         # concatenate all the code blocks into one string
