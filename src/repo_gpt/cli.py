@@ -7,6 +7,7 @@ from pathlib import Path
 from .code_manager.code_manager import CodeManager
 from .openai_service import OpenAIService
 from .search_service import SearchService
+from .test_generator import TestGenerator
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
@@ -182,16 +183,24 @@ def add_tests(
 
     # Save gpt history
     # Ask gpt to explain the function
-    code = openai_service.unit_tests_from_function(
+    test_generator = TestGenerator(
         function_to_test_df.iloc[0]["code"],
+        language="python",
         unit_test_package=testing_package,
-        print_text=True,
-    )  # TODO: add language & test framework from config file
+        debug=True,
+    )
+    unit_tests = test_generator.unit_tests_from_function()
+    # unit_tests = openai_service.unit_tests_from_function(
+    #     function_to_test_df.iloc[0]["code"],
+    #     unit_test_package=testing_package,
+    #     print_text=True,
+    # )  # TODO: add language & test framework from config file
 
+    print(f"Writing generated unit_tests to {test_save_file_path}...")
     # Save code to file
     if test_save_file_path is not None:
         with open(test_save_file_path, "a") as f:
-            f.write(code)
+            f.write(unit_tests)
 
 
 if __name__ == "__main__":

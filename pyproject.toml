@@ -33,6 +33,7 @@ tenacity = "^8.2.2"
 sqlglot = "^16.4.0"
 tree-sitter-languages = "^1.7.0"
 pygments = "^2.16.1"
+tiktoken = "^0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"

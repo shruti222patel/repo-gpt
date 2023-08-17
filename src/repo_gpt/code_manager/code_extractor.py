@@ -1,5 +1,6 @@
 import hashlib
 import os
+from enum import Enum
 from pathlib import Path
 from typing import List, Type
 
@@ -11,6 +12,12 @@ from ..file_handler.abstract_handler import FileHandler, ParsedCode
 from ..file_handler.generic_code_file_handler import PHPFileHandler, PythonFileHandler
 from ..file_handler.sql_file_handler import SqlFileHandler
 from ..utils import logger
+
+
+class LanguageHandler(Enum):
+    PYTHON = PythonFileHandler
+    SQL = SqlFileHandler
+    PHP = PHPFileHandler
 
 
 class CodeExtractor:

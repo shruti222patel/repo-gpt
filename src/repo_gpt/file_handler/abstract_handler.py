@@ -31,3 +31,7 @@ class AbstractHandler(ABC):
     @abstractmethod
     def extract_code(self, filepath) -> List[ParsedCode]:
         pass
+
+    @abstractmethod
+    def is_valid_code(self, code: str) -> bool:
+        pass

@@ -28,3 +28,10 @@ class SqlFileHandler:
                 )
 
         return parsed_statements
+
+    def is_valid_code(self, code: str) -> bool:
+        try:
+            sqlglot.parse(code)
+            return True
+        except:
+            return False

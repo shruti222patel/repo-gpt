@@ -141,6 +141,15 @@ class GenericCodeFileHandler(AbstractHandler):
             output_params if output_params and len(output_params) > 0 else None,
         )
 
+    def is_valid_code(self, code: str) -> bool:
+        tree = self.parser.parse(bytes(code, "utf8"))
+        errors = (
+            tree.root_node.children[-1].type == "ERROR"
+            if tree.root_node.children
+            else False
+        )
+        return not errors
+
 
 class PHPFileHandler(GenericCodeFileHandler):
     def __init__(self):
