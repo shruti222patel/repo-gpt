@@ -3,13 +3,9 @@ import os
 import openai as openai
 
 from .code_manager.code_extractor import LanguageHandler
-from .openai_service import num_tokens_from_messages
+from .openai_service import GPT_3_MODELS, GPT_4_MODELS, num_tokens_from_messages
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
-
-GPT_3_MODELS = {4096: "gpt-3.5-turbo", 16384: "gpt-3.5-turbo-16k"}
-
-GPT_4_MODELS = {8192: "gpt-4", 32768: "gpt-4-32k"}
 
 
 class TestGenerator:

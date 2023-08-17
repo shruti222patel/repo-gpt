@@ -13,8 +13,8 @@ from tenacity import (  # for exponential backoff
 )
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
-MAX_RETRIES = 3
 
+MAX_RETRIES = 3
 GPT_MODEL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 TEMPERATURE = (
@@ -121,3 +121,7 @@ class OpenAIService:
             )
 
         return np.asarray(response["data"][0]["embedding"], dtype=np.float32)
+
+
+GPT_3_MODELS = {4096: "gpt-3.5-turbo", 16384: "gpt-3.5-turbo-16k"}
+GPT_4_MODELS = {8192: "gpt-4", 32768: "gpt-4-32k"}

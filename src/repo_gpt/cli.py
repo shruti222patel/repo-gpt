@@ -130,7 +130,6 @@ def main():
         # Look for the function name in the embedding file
         add_tests(
             search_service,
-            openai_service,
             code_manager,
             args.function_name,
             args.test_save_file_path,
@@ -142,7 +141,6 @@ def main():
 
 def add_tests(
     search_service,
-    openai_service,
     code_manager,
     function_name,
     test_save_file_path,

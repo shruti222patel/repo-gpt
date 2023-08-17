@@ -7,7 +7,6 @@ from rich.markdown import Markdown
 from tqdm import tqdm
 
 from .console import console, pretty_print_code
-from .file_handler.abstract_handler import CodeType
 from .openai_service import OpenAIService
 
 tqdm.pandas()
