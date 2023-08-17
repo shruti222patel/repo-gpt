@@ -71,6 +71,13 @@ After setup, you can perform various tasks:
   repo-gpt help
   ```
 
+- **Generate tests**: Generate tests for a function:
+Note: this assumes the function name is unique in the codebase, otherwise, it will pick the first function it finds with that name.
+
+   ```shell
+   repo-gpt add-test <unique function name> --test_save_file_path <absolute filepath to add tests to> --testing_package <testing package to use e.g. pytest>
+   ```
+
 Example:
 
 ```bash
@@ -115,13 +122,6 @@ Here are the steps to set up your development environment:
 
    ```shell
    poetry run python cli.py search <text/question>
-   ```
-
-6. Generate tests for a function:
-Note: this assumes the function name is unique in the codebase, otherwise, it will pick the first function it finds with that name.
-
-   ```shell
-   poetry run python cli.py add-test <unique funciton name> --test_save_file_path <absolute filepath to add tests to> --testing_package <testing package to use e.g. pytest>
    ```
 
 ### Debugging
