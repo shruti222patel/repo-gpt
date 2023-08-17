@@ -40,3 +40,5 @@ jobs:
 
       - name: Run tests
         run: poetry run pytest
+        env:
+          OPENAI_API_KEY: ""
