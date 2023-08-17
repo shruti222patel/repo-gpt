@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar, Union
 
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
@@ -17,9 +17,9 @@ class ParsedCode:
     name: str
     code_type: CodeType
     code: str
-    summary: str | None
-    inputs: Tuple[str, ...] | None
-    outputs: Tuple[str, ...] | str
+    summary: Union[str, None]
+    inputs: Union[Tuple[str, ...], None]
+    outputs: Union[Tuple[str, ...], str]
     filepath: str = None
     file_checksum: str = None
 
