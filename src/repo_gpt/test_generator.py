@@ -7,12 +7,12 @@ from .openai_service import num_tokens_from_messages
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-GPT_3_MODELS = {4000: "gpt-3.5-turbo", 16000: "gpt-3.5-turbo-16k"}
+GPT_3_MODELS = {4096: "gpt-3.5-turbo", 16384: "gpt-3.5-turbo-16k"}
+
+GPT_4_MODELS = {8192: "gpt-4", 32768: "gpt-4-32k"}
 
 
 class TestGenerator:
-    GPT_MODEL_SMALL_SMALL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
-    GPT_MODEL_SMALL_MEDIUM = "gpt-3.5-turbo-16k"
     TEMPERATURE = 0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
 
     def __init__(
@@ -23,6 +23,7 @@ class TestGenerator:
         debug: bool = False,
         approx_min_cases_to_cover: int = 7,
         reruns_if_fail: int = 1,
+        use_gpt_4: bool = False,
     ):
         self.messages = []
         self.language = language
@@ -32,6 +33,7 @@ class TestGenerator:
         self.approx_min_cases_to_cover = approx_min_cases_to_cover
         self.reruns_if_fail = reruns_if_fail
         self.code_handler = LanguageHandler[language.upper()].value()
+        self.model_set = GPT_4_MODELS if use_gpt_4 else GPT_3_MODELS
 
     def create_gpt_message(self, role: str, content: str) -> dict:
         message = {"role": role, "content": content}
@@ -96,10 +98,10 @@ class TestGenerator:
 
     def find_gpt3_model(self):
         num_tokens = num_tokens_from_messages(self.messages)
-        for max_tokens, model in GPT_3_MODELS.items():
+        for max_tokens, model in self.model_set.items():
             if num_tokens < max_tokens:
                 return model
-        raise Exception(f"Too many tokens ({num_tokens}) for GPT-3.5")
+        raise Exception(f"Too many tokens ({num_tokens}) for {model}")
 
     def generate_stream_response(self) -> str:
         model = self.find_gpt3_model()

@@ -1,14 +1,12 @@
 import pickle
 from pathlib import Path
-from pprint import pprint
 from typing import Tuple
 
 import pandas as pd
 from rich.markdown import Markdown
-from rich.syntax import Syntax
 from tqdm import tqdm
 
-from .console import console
+from .console import console, pretty_print_code
 from .file_handler.abstract_handler import CodeType
 from .openai_service import OpenAIService
 
@@ -16,10 +14,13 @@ tqdm.pandas()
 
 
 class SearchService:
-    def __init__(self, pickle_path: Path, openai_service: OpenAIService):
+    def __init__(
+        self, pickle_path: Path, openai_service: OpenAIService, language: str = "python"
+    ):
         self.pickle_path = pickle_path
         self.refresh_df()
         self.openai_service = openai_service
+        self.language = language
 
     def refresh_df(self):
         with open(self.pickle_path, "rb") as f:
@@ -36,7 +37,7 @@ class SearchService:
 
     def semantic_search(self, code_query: str):
         similar_code_df = self._semantic_search_similar_code(code_query)
-        self._pretty_print_code(similar_code_df)
+        pretty_print_code(similar_code_df, self.language)
         return similar_code_df
 
     def find_function_match(
@@ -63,23 +64,6 @@ class SearchService:
 
         return function_matches, class_matches
 
-    def _pretty_print_code(self, similar_code_df):
-        n_lines = 7
-        if pprint:
-            for r in similar_code_df.iterrows():
-                console.rule(f"[bold red]{str(r[1].name)}")
-                print(
-                    str(r[1].filepath)
-                    + ":"
-                    + str(r[1].name)
-                    + "  distance="
-                    + str(round(r[1].similarities, 3))
-                )
-                syntax = Syntax(
-                    "\n".join(r[1].code.split("\n")[:n_lines]), "python"
-                )  # TODO: make this dynamic
-                console.print(syntax)
-
     def _semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
         console.print("Searching for similar code...")
@@ -93,7 +77,7 @@ class SearchService:
 
     def question_answer(self, question: str):
         similar_code_df = self._semantic_search_similar_code(question)
-        self._pretty_print_code(similar_code_df)
+        pretty_print_code(similar_code_df, self.language)
 
         # TODO: add code to only send X amount of tokens to OpenAI
         # concatenate all the code blocks into one string
