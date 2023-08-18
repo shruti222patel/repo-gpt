@@ -1,3 +1,4 @@
+from collections import deque
 from pathlib import Path
 from typing import List, Tuple
 
@@ -17,6 +18,8 @@ class GenericCodeFileHandler(AbstractHandler):
         method_node_type: str,
         class_internal_node_type: str,
         parent_class_node_type: str,
+        parent_class_name_node_type: str,
+        method_name_node_type: str,
         function_output_node_type: str = "output",
         function_parameters_node_type: str = "parameters",
     ):
@@ -29,6 +32,8 @@ class GenericCodeFileHandler(AbstractHandler):
         self.parent_class_node_type = parent_class_node_type
         self.function_output_node_type = function_output_node_type
         self.function_parameters_node_type = function_parameters_node_type
+        self.parent_class_name_node_type = parent_class_name_node_type
+        self.method_name_node_type = method_name_node_type
 
         self.language = get_language(lang)
         self.parser = get_parser(lang)
@@ -36,7 +41,10 @@ class GenericCodeFileHandler(AbstractHandler):
 
     def get_function_name(self, function_node):
         for node in function_node.named_children:
-            if node.type == self.function_name_node_type:
+            if (
+                node.type == self.function_name_node_type
+                or node.type == self.method_name_node_type
+            ):
                 return node.text.decode("utf8")
 
     def get_class_name(self, class_node):
@@ -112,11 +120,20 @@ class GenericCodeFileHandler(AbstractHandler):
         for child in class_node.children:
             # If we found the base_classes node
             if child.type == self.parent_class_node_type:
-                return tuple(
-                    grandchild.text.decode("utf8")
-                    for grandchild in child.named_children
-                    if grandchild.type == self.class_name_node_type
-                )
+                queue = deque(child.named_children)
+                while len(queue):
+                    node = queue.popleft()
+                    if node.type == self.parent_class_name_node_type:
+                        return (
+                            tuple(
+                                grandchild.text.decode("utf8")
+                                for grandchild in node.named_children
+                            )
+                            if len(node.named_children) > 0
+                            else (node.text.decode("utf8"),)
+                        )
+                    else:
+                        queue.extend(node.named_children)
         return None
 
     def get_function_parameters(
@@ -164,6 +181,8 @@ class PHPFileHandler(GenericCodeFileHandler):
             parent_class_node_type="base_clause",
             function_output_node_type="union_type",
             function_parameters_node_type="function_parameters_node_type",
+            parent_class_name_node_type="name",
+            method_name_node_type="name",
         )
 
 
@@ -179,4 +198,24 @@ class PythonFileHandler(GenericCodeFileHandler):
             class_internal_node_type="block",
             parent_class_node_type="argument_list",
             function_output_node_type="type",
+            parent_class_name_node_type="identifier",
+            method_name_node_type="identifier",
+        )
+
+
+class TypeScriptFileHandler(GenericCodeFileHandler):
+    def __init__(self):
+        super().__init__(
+            lang="typescript",
+            function_name_node_type="identifier",
+            class_name_node_type="type_identifier",
+            parent_class_name_node_type="identifier",
+            function_node_type="function_declaration",
+            class_node_type="class_declaration",
+            method_node_type="method_definition",
+            class_internal_node_type="class_body",
+            parent_class_node_type="class_heritage",
+            function_output_node_type="type_annotation",
+            function_parameters_node_type="formal_parameters",
+            method_name_node_type="property_identifier",
         )

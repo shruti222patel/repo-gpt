@@ -21,6 +21,18 @@ class CodeManager:
 
         self.current_df = self.load_data()
 
+    def list_file_structure(self):
+        output = []
+        for current_path, dirs, files in os.walk(self.code_root):
+            level = current_path.replace(self.code_root, "").count(os.sep)
+            indent = "    " * (level)
+            output.append(f"{indent}/{os.path.basename(current_path)}")
+            subindent = "    " * (level + 1)
+            for f in sorted(files):
+                output.append(f"{subindent}{f}")
+
+        return "\n".join(output)
+
     def load_data(self):
         df = None
         if os.path.exists(self.output_path):
