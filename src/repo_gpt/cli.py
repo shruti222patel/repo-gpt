@@ -119,11 +119,15 @@ def main():
         manager = CodeManager(output_path, root_path)
         manager.setup()
     elif args.command == "search":
+        update_code_embedding_file(args.pickle_path)
         # search_service.simple_search(args.query) # simple search
         search_service.semantic_search(args.query)  # semantic search
     elif args.command == "query":
+        update_code_embedding_file(args.pickle_path)
         search_service.question_answer(args.question)
-    elif args.command == "analyze":
+
+    elif args.command == "analyze":  # TODO change to explain function
+        update_code_embedding_file(args.pickle_path)
         search_service.analyze_file(args.file_path)
     elif args.command == "add-test":
         code_manager = CodeManager(args.pickle_path)
@@ -137,6 +141,23 @@ def main():
         )
     else:
         parser.print_help()
+
+
+def update_code_embedding_file(code_embedding_file_path, function_name=None):
+    manager = CodeManager(code_embedding_file_path)
+    search = SearchService(code_embedding_file_path)
+    if function_name:
+        function_to_test_df, class_to_test_df = search.find_function_match(
+            function_name
+        )
+        checksum_filepath_dict = {
+            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
+                "filepath"
+            ]
+        }
+        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
+    else:
+        manager.setup()
 
 
 def add_tests(
