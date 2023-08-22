@@ -36,6 +36,14 @@ EXPECTED_PHP_FUNCTION_PARSED_CODE = [
         summary=None,
         outputs=("string",),
     ),
+    ParsedCode(
+        name=None,
+        code_type=CodeType.GLOBAL,
+        code="<?php\n?>",
+        inputs=None,
+        summary=None,
+        outputs=None,
+    ),
 ]
 
 EXPECTED_PHP_CLASS_PARSED_CODE = [
@@ -51,6 +59,14 @@ EXPECTED_PHP_CLASS_PARSED_CODE = [
         name="testMethod",
         code_type=CodeType.METHOD,
         code="public function testMethod() {\n        /* This is a test method. */\n        return;\n    }",
+        inputs=None,
+        summary=None,
+        outputs=None,
+    ),
+    ParsedCode(
+        name=None,
+        code_type=CodeType.GLOBAL,
+        code="<?php\n?>",
         inputs=None,
         summary=None,
         outputs=None,
@@ -73,8 +89,8 @@ def test_php_normal_operation(tmp_path, input_text, expected_output):
 
     assert isinstance(parsed_code, list)
     assert all(isinstance(code, ParsedCode) for code in parsed_code)
-    parsed_code.sort(key=lambda x: x.name)
-    expected_output.sort(key=lambda x: x.name)
+    parsed_code.sort()
+    expected_output.sort()
     assert len(parsed_code) == len(expected_output)
     assert parsed_code == expected_output
 
@@ -82,16 +98,15 @@ def test_php_normal_operation(tmp_path, input_text, expected_output):
 def test_no_function_in_file(tmp_path):
     # Test PHP file with no functions or classes
     p = tmp_path / "no_function_class_php_file.php"
-    p.write_text(
-        """
-    $x = 10;
-    $y = 20;
-    $z = $x + $y;
-    """
-    )
+    code = """$x = 10;
+$y = 20;
+$z = $x + $y;"""
+    p.write_text(code)
     parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert parsed_code[0].code == code.strip()
 
 
 def test_edge_cases(tmp_path):
@@ -103,10 +118,15 @@ def test_edge_cases(tmp_path):
     assert len(parsed_code) == 0
 
     # Test non-PHP file
-    p = tmp_path / "non_php_file.txt"
-    p.write_text("This is a text file, not a PHP file.")
+    p = (
+        tmp_path / "non_php_file.txt"
+    )  # the function doesn't check file types just parses text code
+    text = "This is a text file, not a PHP file."
+    p.write_text(text)
     parsed_code = handler.extract_code(p)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert parsed_code[0].code == text
 
     # Test non-existent file
     p = tmp_path / "non_existent_file.php"

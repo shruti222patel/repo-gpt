@@ -57,20 +57,36 @@ class GenericCodeFileHandler(AbstractHandler):
             try:
                 code = source_code.read()
                 tree = self.parser.parse(bytes(code, "utf8"))
-                return self.parse_tree(tree, filepath)
+                return self.parse_tree(tree)
             except Exception as e:
                 print(f"Failed to parse file {filepath}: {e}")
                 raise
 
-    def parse_tree(self, tree, filepath: str) -> List[ParsedCode]:
+    def parse_tree(self, tree) -> List[ParsedCode]:
         parsed_nodes = []
         root_node = tree.root_node
+        global_nodes = []
         for node in root_node.children:
             if node.type == self.function_node_type:
                 parsed_nodes.append(self.get_function_parsed_code(node))
             elif node.type == self.class_node_type:
                 parsed_nodes.extend(self.get_class_and_method_parsed_code(node))
+            else:
+                global_nodes.append(node)
+        if len(global_nodes) > 0:
+            parsed_nodes.append(self.get_global_code(global_nodes))
         return parsed_nodes
+
+    def get_global_code(self, global_nodes: []) -> ParsedCode:
+        code = "\n".join([node.text.decode("utf8") for node in global_nodes])
+        return ParsedCode(
+            name=None,
+            code_type=CodeType.GLOBAL,
+            code=code,
+            summary=None,
+            inputs=None,
+            outputs=None,
+        )
 
     def get_function_parsed_code(self, function_node, is_method=False) -> ParsedCode:
         name = self.get_function_name(function_node)

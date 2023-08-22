@@ -10,11 +10,12 @@ class CodeType(Enum):
     FUNCTION = "function"
     CLASS = "class"
     METHOD = "method"
+    GLOBAL = "global"
 
 
 @dataclass
 class ParsedCode:
-    name: str
+    name: Union[str, None]
     code_type: CodeType
     code: str
     summary: Union[str, None]
@@ -24,7 +25,7 @@ class ParsedCode:
     file_checksum: str = None
 
     def __lt__(self, other: "ParsedCode"):
-        return self.name < other.name
+        return self.code < other.code
 
 
 class AbstractHandler(ABC):
