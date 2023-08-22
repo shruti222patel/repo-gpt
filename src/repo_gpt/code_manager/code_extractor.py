@@ -137,9 +137,12 @@ class CodeExtractor:
         handler = self.get_handler(filepath)
         code_blocks = []
         if handler:
-            code_blocks = handler().extract_code(filepath)
-            for code in code_blocks:
-                code.filepath = filepath
-                code.file_checksum = file_checksum
+            try:
+                code_blocks = handler().extract_code(filepath)
+                for code in code_blocks:
+                    code.filepath = filepath
+                    code.file_checksum = file_checksum
+            except Exception as e:
+                logger.error(f"Error extracting code from {filepath}: {e}")
 
         return code_blocks
