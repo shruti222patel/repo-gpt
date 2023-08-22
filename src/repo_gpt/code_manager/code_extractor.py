@@ -89,11 +89,8 @@ class CodeExtractor:
             ]
 
             for file in files:
-                try:
-                    file_path = root_path / file
-                    code_files.append(self.code_root_path / file_path)
-                except Exception as e:
-                    print(f"Error processing file {file}: {e}")
+                file_path = root_path / file
+                code_files.append(self.code_root_path / file_path)
         return code_files
 
     def get_gitignore(self) -> List[str]:
