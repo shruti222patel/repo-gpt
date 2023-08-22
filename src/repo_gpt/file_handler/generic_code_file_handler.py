@@ -60,7 +60,6 @@ class GenericCodeFileHandler(AbstractHandler):
                 return self.parse_tree(tree)
             except Exception as e:
                 print(f"Failed to parse file {filepath}: {e}")
-                raise
 
     def parse_tree(self, tree) -> List[ParsedCode]:
         parsed_nodes = []

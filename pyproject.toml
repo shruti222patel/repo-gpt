@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-gpt"
-version = "0.1.3"
+version = "0.1.4"
 description = "Search your code repository using GPT3.5 or GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
@@ -40,6 +40,7 @@ pytest = "^7.3.2"
 pre-commit = "^3.3.2"
 exceptiongroup = { version="^1.1.1", markers="python_version <= '3.10'" }
 jupyterlab = "^4.0.4"
+bump2version = "^1.0.1"
 
 [tool.poetry.scripts]
 repo-gpt = "repo_gpt.cli:main"
