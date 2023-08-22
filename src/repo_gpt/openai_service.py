@@ -1,7 +1,5 @@
 # Set your OpenAI API key as an environment variable
 import os
-import time
-from typing import Any, Callable
 
 import numpy as np
 import openai as openai
@@ -71,7 +69,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
 
 class OpenAIService:
     GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in markdown-formatted, bulleted lists."
-    ANALYSIS_SYSTEM_PROMPT = "You are a world-class Python developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
+    ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_answer(
@@ -96,16 +94,20 @@ class OpenAIService:
         )
         return response.choices[0]["message"]["content"]
 
-    def _retry_on_exception(self, func: Callable[..., Any], *args, **kwargs):
-        for retry in range(MAX_RETRIES):
-            try:
-                return func(*args, **kwargs)
-            except Exception:
-                if retry < MAX_RETRIES - 1:  # if it's not the last retry
-                    sleep_time = 2**retry  # exponential backoff
-                    time.sleep(sleep_time)
-                else:  # if it's the last retry, re-raise the exception
-                    raise
+    @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
+    def query(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
+        response = openai.ChatCompletion.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {"role": "user", "content": query},
+            ],
+            model=GPT_MODEL,
+            temperature=TEMPERATURE,
+        )
+        return response.choices[0]["message"]["content"]
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):
