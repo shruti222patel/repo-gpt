@@ -7,6 +7,8 @@ handler = PythonFileHandler()
 
 # Define input text
 SAMPLE_FUNCTION_INPUT_TEXT = """
+foo = "bar"
+
 def hello_world() -> str:
     return "Hello, world!"
 """
@@ -26,6 +28,14 @@ EXPECTED_FUNCTION_PARSED_CODE = [
         inputs=None,
         summary=None,
         outputs=("str",),
+    ),
+    ParsedCode(
+        name=None,
+        code_type=CodeType.GLOBAL,
+        code='foo = "bar"',
+        inputs=None,
+        summary=None,
+        outputs=None,
     ),
 ]
 
@@ -73,16 +83,16 @@ def test_normal_operation(tmp_path, input_text, expected_output):
 def test_no_function_in_file(tmp_path):
     # Test Python file with no functions or classes
     p = tmp_path / "no_function_class_python_file.py"
-    p.write_text(
-        """
-    x = 10
-    y = 20
-    z = x + y
+    code = """x = 10
+y = 20
+z = x + y
     """
-    )
+    p.write_text(code)
     parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert parsed_code[0].code == code.strip()
 
 
 def test_edge_cases(tmp_path):
@@ -94,10 +104,15 @@ def test_edge_cases(tmp_path):
     assert len(parsed_code) == 0
 
     # Test non-Python file
-    p = tmp_path / "non_python_file.txt"
-    p.write_text("This is a text file, not a Python file.")
+    p = (
+        tmp_path / "non_python_file.txt"
+    )  # This function doesn't check if the file or function is valid Python
+    text = "This is a text file, not a Python file."
+    p.write_text(text)
     parsed_code = handler.extract_code(p)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert parsed_code[0].code == text
 
     # Test non-existent file
     p = tmp_path / "non_existent_file.py"
