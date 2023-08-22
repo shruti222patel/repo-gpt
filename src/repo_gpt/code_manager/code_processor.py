@@ -23,7 +23,15 @@ class CodeProcessor:
         print(
             f"Generating openai embeddings for {len(df)} code blocks. This may take a while because of rate limiting..."
         )
-        df["code_embedding"] = df["code"].progress_apply(
-            self.openai_service.get_embedding
-        )
+
+        err_cnt = 0
+
+        def safe_get_embedding(code):
+            try:
+                return self.openai_service.get_embedding(code)
+            except Exception as e:
+                print(f"Error generating embedding for code: {code}. Error: {e}")
+                return None
+
+        df["code_embedding"] = df["code"].progress_apply(safe_get_embedding)
         return df

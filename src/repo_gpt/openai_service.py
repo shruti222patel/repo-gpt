@@ -111,7 +111,13 @@ class OpenAIService:
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):
-        response = openai.Embedding.create(input=[text], model=EMBEDDING_MODEL)
+        try:
+            response = openai.Embedding.create(input=[text], model=EMBEDDING_MODEL)
+        except openai.error.OpenAIError as e:
+            # print(f"OpenAIError: {e}")
+            # print(f"Input: {text}")
+            # print(f"Response: {response}")
+            raise e
 
         if (
             "data" not in response
