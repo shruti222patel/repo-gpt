@@ -54,12 +54,9 @@ class GenericCodeFileHandler(AbstractHandler):
 
     def extract_code(self, filepath: Path) -> List[ParsedCode]:
         with open(filepath, "r", encoding="utf-8") as source_code:
-            try:
-                code = source_code.read()
-                tree = self.parser.parse(bytes(code, "utf8"))
-                return self.parse_tree(tree)
-            except Exception as e:
-                print(f"Failed to parse file {filepath}: {e}")
+            code = source_code.read()
+            tree = self.parser.parse(bytes(code, "utf8"))
+            return self.parse_tree(tree)
 
     def parse_tree(self, tree) -> List[ParsedCode]:
         parsed_nodes = []
