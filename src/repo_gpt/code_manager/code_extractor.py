@@ -138,9 +138,11 @@ class CodeExtractor:
         self, filepath: str, file_checksum: str
     ) -> List[ParsedCode]:
         handler = self.get_handler(filepath)
+        code_blocks = []
         if handler:
-            parsed_code = handler().extract_code(filepath)
-            for code in parsed_code:
+            code_blocks = handler().extract_code(filepath)
+            for code in code_blocks:
                 code.filepath = filepath
                 code.file_checksum = file_checksum
-        return parsed_code
+
+        return code_blocks
