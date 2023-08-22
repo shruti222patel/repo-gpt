@@ -70,7 +70,7 @@ class TestGenerator:
     def get_explanation_of_function(self) -> str:
         self.create_gpt_message(
             "system",
-            "You are a world-class Python developer with an eagle eye for unintended bugs and edge cases. ...",
+            f"You are a world-class {self.language} developer with an eagle eye for unintended bugs and edge cases. ...",
         )
         self.create_gpt_message(
             "user",

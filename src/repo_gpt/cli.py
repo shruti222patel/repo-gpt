@@ -67,6 +67,13 @@ def main():
         default=CODE_EMBEDDING_FILE_PATH,
     )
 
+    # Sub-command to explain a file
+    explain_code = subparsers.add_parser("explain", help="Explain a code snippet")
+    explain_code.add_argument(
+        "--language", default="", type=str, help="Language of the code"
+    )
+    explain_code.add_argument("--code", type=str, help="Code you want to explain")
+
     # Sub-command to analyze a file
     add_test = subparsers.add_parser("add-test", help="Add tests for existing function")
     add_test.add_argument(
@@ -108,8 +115,8 @@ def main():
     openai_service = OpenAIService()
 
     search_service = (
-        SearchService(args.pickle_path, openai_service)
-        if args.command != "setup"
+        SearchService(openai_service, args.pickle_path)
+        if args.command not in ["setup", "explain"]
         else None
     )
 
@@ -125,6 +132,9 @@ def main():
         search_service.question_answer(args.question)
     elif args.command == "analyze":
         search_service.analyze_file(args.file_path)
+    elif args.command == "explain":
+        search_service = SearchService(openai_service, language=args.language)
+        return search_service.explain(args.code)
     elif args.command == "add-test":
         code_manager = CodeManager(args.pickle_path)
         # Look for the function name in the embedding file
@@ -202,4 +212,6 @@ def add_tests(
 
 
 if __name__ == "__main__":
-    main()
+    result = main()
+    if result != None:
+        print(result)

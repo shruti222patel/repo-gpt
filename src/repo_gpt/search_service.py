@@ -14,10 +14,14 @@ tqdm.pandas()
 
 class SearchService:
     def __init__(
-        self, pickle_path: Path, openai_service: OpenAIService, language: str = "python"
+        self,
+        openai_service: OpenAIService,
+        pickle_path: Path = None,
+        language: str = "python",
     ):
         self.pickle_path = pickle_path
-        self.refresh_df()
+        if pickle_path is not None:
+            self.refresh_df()
         self.openai_service = openai_service
         self.language = language
 
@@ -105,3 +109,17 @@ class SearchService:
         ans_md = Markdown(ans)
         console.print("🤖 Answer from `GPT3.5` 🤖")
         console.print(ans_md)
+
+    def explain(self, code: str):
+        try:
+            explanation = self.openai_service.query(
+                f"""Please explain the following {self.language} function.
+
+```{self.language}
+{code}
+```""",
+                system_prompt=f"""You are a world-class {self.language} developer and you are explaining the following code to a junior developer. Organize your explanation as a markdown-format.""",
+            )
+            return explanation
+        except Exception as e:
+            return e.message
