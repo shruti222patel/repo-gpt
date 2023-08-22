@@ -112,7 +112,7 @@ def test_incorrect_sql_syntax(tmp_path):
     # Create a file with incorrect SQL syntax
     d = tmp_path / "incorrect"
     d.mkdir()
-    p = d / "incorrect.sql"
+    p = d / "incorrect.py"
     p.write_text("SELECT FROM table;")
     # Test the function, expect a SQLGlotError to be raised
     result = handler.extract_code(p)
