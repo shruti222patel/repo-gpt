@@ -7,6 +7,7 @@ from typing import List, Type
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
 from pygments.lexers import ClassNotFound, get_lexer_for_filename
+from tqdm import tqdm
 
 from ..file_handler.abstract_handler import FileHandler, ParsedCode
 from ..file_handler.generic_code_file_handler import PHPFileHandler, PythonFileHandler
@@ -77,7 +78,9 @@ class CodeExtractor:
 
     def extract_code_files(self) -> List[str]:
         code_files = []
-        for root, dirs, files in os.walk(self.code_root_path):
+        for root, dirs, files in tqdm(
+            os.walk(self.code_root_path), desc="Scanning directories"
+        ):
             root_path = Path(root).relative_to(self.code_root_path)
 
             # Skip directories listed in .gitignore
@@ -86,9 +89,11 @@ class CodeExtractor:
             ]
 
             for file in files:
-                if self.is_file_parsable(file):
+                try:
                     file_path = root_path / file
                     code_files.append(self.code_root_path / file_path)
+                except Exception as e:
+                    print(f"Error processing file {file}: {e}")
         return code_files
 
     def get_gitignore(self) -> List[str]:
