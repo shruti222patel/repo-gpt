@@ -34,6 +34,8 @@ sqlglot = "^16.4.0"
 tree-sitter-languages = "^1.7.0"
 pygments = "^2.16.1"
 tiktoken = "^0.4.0"
+configargparse = "^1.7"
+toml = "^0.10.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
@@ -51,3 +53,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 python_paths = ["src"]
+
+[tool.repo_gpt]
+code_root_path = "./src/repo_gpt"

@@ -119,9 +119,14 @@ class CodeExtractor:
             ):
                 print(f"🟡 Skipping -- file unmodified {code_filepath}")
                 continue
-            file_code_blocks = self.extract_functions_from_file(
-                code_filepath, file_checksum
-            )
+            try:
+                file_code_blocks = self.extract_functions_from_file(
+                    code_filepath, file_checksum
+                )
+            except Exception as e:
+                # logger.error(f"Error extracting code from {code_filepath}: {e}")
+                print(f"🔴 Skipping -- error extracting code {code_filepath}")
+                continue
             if len(file_code_blocks) == 0:
                 print(f"🟡 Skipping -- no functions or classes found {code_filepath}")
             else:
@@ -137,12 +142,9 @@ class CodeExtractor:
         handler = self.get_handler(filepath)
         code_blocks = []
         if handler:
-            try:
-                code_blocks = handler().extract_code(filepath)
-                for code in code_blocks:
-                    code.filepath = filepath
-                    code.file_checksum = file_checksum
-            except Exception as e:
-                logger.error(f"Error extracting code from {filepath}: {e}")
+            code_blocks = handler().extract_code(filepath)
+            for code in code_blocks:
+                code.filepath = filepath
+                code.file_checksum = file_checksum
 
         return code_blocks
