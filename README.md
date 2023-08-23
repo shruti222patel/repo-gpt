@@ -145,3 +145,4 @@ Here are the improvements we are currently considering:
 - [X] Add SQL file handler
 - [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
 - [ ] Create VSCode extension
+- [ ] Ensure files can be added & deleted and the indexing picks up on the changes.

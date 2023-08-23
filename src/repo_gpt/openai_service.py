@@ -10,8 +10,6 @@ from tenacity import (  # for exponential backoff
     wait_random_exponential,
 )
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-
 MAX_RETRIES = 3
 GPT_MODEL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
 EMBEDDING_MODEL = "text-embedding-ada-002"
@@ -70,6 +68,11 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
 class OpenAIService:
     GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in markdown-formatted, bulleted lists."
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
+
+    def __init__(self, openai_api_key):
+        openai.api_key = (
+            openai_api_key if openai_api_key else os.environ["OPENAI_API_KEY"]
+        )
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_answer(

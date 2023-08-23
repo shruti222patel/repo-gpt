@@ -5,8 +5,6 @@ import openai as openai
 from .code_manager.code_extractor import LanguageHandler
 from .openai_service import GPT_3_MODELS, GPT_4_MODELS, num_tokens_from_messages
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-
 
 class TestGenerator:
     TEMPERATURE = 0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
@@ -20,7 +18,11 @@ class TestGenerator:
         approx_min_cases_to_cover: int = 7,
         reruns_if_fail: int = 1,
         use_gpt_4: bool = False,
+        openai_api_key: str = None,
     ):
+        openai.api_key = (
+            openai_api_key if openai_api_key else os.environ["OPENAI_API_KEY"]
+        )
         self.messages = []
         self.language = language
         self.unit_test_package = unit_test_package
