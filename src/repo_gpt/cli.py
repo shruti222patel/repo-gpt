@@ -36,6 +36,14 @@ def main():
         help="Package/library GPT should use to write tests (e.g. pytest, unittest, etc.)",
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=1,
+        help="Increase verbosity level (e.g., -v, -vv, -vvv)",
+    )
+
     subparsers = parser.add_subparsers(dest="command")
 
     def print_help():
@@ -195,6 +203,4 @@ def add_tests(
 
 
 if __name__ == "__main__":
-    result = main()
-    if result != None:
-        print(result)
+    main()

@@ -1,5 +1,6 @@
 # Set your OpenAI API key as an environment variable
 import os
+import time
 
 import numpy as np
 import openai as openai
@@ -98,8 +99,8 @@ class OpenAIService:
         return response.choices[0]["message"]["content"]
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
-    def query(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
-        response = openai.ChatCompletion.create(
+    def query_stream(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
+        api_response = openai.ChatCompletion.create(
             messages=[
                 {
                     "role": "system",
@@ -109,8 +110,20 @@ class OpenAIService:
             ],
             model=GPT_MODEL,
             temperature=TEMPERATURE,
+            stream=True,
         )
-        return response.choices[0]["message"]["content"]
+
+        for chunk in api_response:
+            delta = chunk["choices"][0]["delta"]
+            if "content" in delta:
+                content = delta["content"]
+                for char in content:
+                    print(
+                        char, end="", flush=True
+                    )  # flush ensures the character is printed immediately
+                    time.sleep(
+                        0.01
+                    )  # pause for 10 milliseconds (adjust as needed for desired typing speed)
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):

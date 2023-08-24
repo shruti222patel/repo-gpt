@@ -98,21 +98,25 @@ class SearchService:
     def analyze_file(self, file_path: str):
         with open(file_path, "r") as f:
             code = f.read()
-        console.print("Analyzing your code...")
-        ans = self.openai_service.get_answer(
-            "Please explain the following code. Review what each element of the "
-            "code is doing precisely and what the author's intentions may have "
-            "been. Organize your explanation as a markdown-formatted, bulleted list.",
-            code,
-            system_prompt=self.openai_service.ANALYSIS_SYSTEM_PROMPT,
-        )
-        ans_md = Markdown(ans)
-        console.print("🤖 Answer from `GPT3.5` 🤖")
-        console.print(ans_md)
+
+        self.explain(code)
+        # console.print("Analyzing your code...")
+
+    #         self.openai_service.query_stream(
+    #             f"""Please explain the following {self.language} code.
+    #
+    # ```{self.language}
+    # {code}
+    #         ```""",
+    #             system_prompt=f"""You are a world-class {self.language} developer and you are explaining the following code to a junior developer. Organize your explanation as a markdown-format.""",
+    #         )
+    # ans_md = Markdown(ans)
+    # console.print("🤖 Answer from `GPT3.5` 🤖")
+    # console.print(ans_md)
 
     def explain(self, code: str):
         try:
-            explanation = self.openai_service.query(
+            explanation = self.openai_service.query_stream(
                 f"""Please explain the following {self.language} function.
 
 ```{self.language}
