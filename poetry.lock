@@ -2596,20 +2596,6 @@ files = [
 ]
 
 [[package]]
-name = "sqlglot"
-version = "16.8.1"
-description = "An easily customizable SQL parser and transpiler"
-optional = false
-python-versions = "*"
-files = [
-    {file = "sqlglot-16.8.1-py3-none-any.whl", hash = "sha256:14dcc4478f220839262172849f0174c6b80f4a8c77f2fb6295c16f2d121f09fa"},
-    {file = "sqlglot-16.8.1.tar.gz", hash = "sha256:2a7451f0ed2feac6e7a832bafee852a25e743c35a637e5020f3235c1feb9b700"},
-]
-
-[package.extras]
-dev = ["autoflake", "black", "duckdb (>=0.6)", "isort", "mypy (>=0.990)", "pandas", "pdoc", "pre-commit", "pyspark", "python-dateutil"]
-
-[[package]]
 name = "stack-data"
 version = "0.6.2"
 description = "Extract data from python stack frames and tracebacks for informative displays"
@@ -3116,4 +3102,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "0a376635aab8c80722a6bb94bc3b9ca92805f56050d170bcfb8b6faf7d90533c"
+content-hash = "f1ba1f9eb66bc81c8ef6c80330f0a4ddff93520eff00271285da5c3d9ddd66d0"
