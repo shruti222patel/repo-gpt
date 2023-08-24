@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import List, Tuple, TypeVar, Union
 
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
@@ -12,6 +13,11 @@ class CodeType(Enum):
     METHOD = "method"
     GLOBAL = "global"
 
+    SELECT = "select"
+    INSERT = "insert"
+    UPDATE = "update"
+    DELETE = "delete"
+
 
 @dataclass
 class ParsedCode:
@@ -20,7 +26,7 @@ class ParsedCode:
     code: str
     summary: Union[str, None]
     inputs: Union[Tuple[str, ...], None]
-    outputs: Union[Tuple[str, ...], str]
+    outputs: Union[Tuple[str, ...], str, None]
     filepath: str = None
     file_checksum: str = None
 
@@ -40,9 +46,15 @@ class VSCodeExtCodeLensCode:
 
 class AbstractHandler(ABC):
     @abstractmethod
-    def extract_code(self, filepath) -> List[ParsedCode]:
+    def extract_code(self, filepath: Path) -> List[ParsedCode]:
         pass
 
     @abstractmethod
     def is_valid_code(self, code: str) -> bool:
+        pass
+
+    @abstractmethod
+    def extract_vscode_ext_codelens(
+        self, filepath: Path
+    ) -> List[VSCodeExtCodeLensCode]:
         pass

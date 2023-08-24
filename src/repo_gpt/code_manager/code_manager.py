@@ -6,7 +6,7 @@ from typing import Dict
 import pandas as pd
 from tqdm import tqdm
 
-from .code_extractor import CodeExtractor
+from .code_dir_extractor import CodeDirExtractor
 from .code_processor import CodeProcessor
 
 tqdm.pandas()
@@ -16,7 +16,7 @@ class CodeManager:
     def __init__(self, output_path: Path, code_root: Path = None):
         self.code_root = code_root
         self.output_path = output_path
-        self.extractor = CodeExtractor(self.code_root, self.output_path)
+        self.extractor = CodeDirExtractor(self.code_root, self.output_path)
         self.processor = CodeProcessor(self.code_root)
 
         self.current_df = self.load_data()

@@ -2,7 +2,7 @@ import os
 
 import openai as openai
 
-from .code_manager.code_extractor import LanguageHandler
+from .code_manager.abstract_extractor import LanguageHandler
 from .openai_service import GPT_3_MODELS, GPT_4_MODELS, num_tokens_from_messages
 
 

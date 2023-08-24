@@ -1,13 +1,9 @@
 import pytest
 
-# Create a handler that we can use in our tests
-from repo_gpt.file_handler.abstract_handler import ParsedCode
-from repo_gpt.file_handler.sql_file_handler import SqlFileHandler
+from repo_gpt.file_handler.abstract_handler import CodeType, ParsedCode
+from repo_gpt.file_handler.generic_sql_file_handler import GenericSQLFileHandler
 
-# Assume that sqlglot raises a SQLGlotError for incorrect syntax
-
-
-handler = SqlFileHandler()
+handler = GenericSQLFileHandler()
 
 
 def test_single_sql_statement(tmp_path):
@@ -20,8 +16,8 @@ def test_single_sql_statement(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1",
-        code_type="Select",
+        name=None,
+        code_type=CodeType.SELECT,
         code="SELECT * FROM table",
         inputs=None,
         summary=None,
@@ -39,19 +35,19 @@ def test_multiple_sql_statements(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 2
     assert result[0] == ParsedCode(
-        name="1",
-        code_type="Select",
+        name=None,
+        code_type=CodeType.SELECT,
         code="SELECT * FROM table",
         inputs=None,
         summary=None,
         outputs=None,
     )
     # Bug with sqlglot: the second statement is not parsed correctly
-    # assert result[1] == ParsedCode(name="2", code_type="Insert", code="INSERT INTO table VALUES (1, 2, 3)")
+    # assert result[1] == ParsedCode(name=None, code_type=CodeType.INSERT, code="INSERT INTO table VALUES (1, 2, 3)")
     assert result[1] == ParsedCode(
-        name="2",
-        code_type="Insert",
-        code="INSERT INTO VALUES (1, 2, 3)",
+        name=None,
+        code_type=CodeType.INSERT,
+        code="INSERT INTO table VALUES (1, 2, 3)",
         inputs=None,
         summary=None,
         outputs=None,
@@ -68,8 +64,8 @@ def test_nested_sql_statements(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1",
-        code_type="Select",
+        name=None,
+        code_type=CodeType.SELECT,
         code="SELECT * FROM (SELECT id FROM table)",
         inputs=None,
         summary=None,
@@ -89,19 +85,19 @@ def test_comments_in_sql_file(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 2
     assert result[0] == ParsedCode(
-        name="1",
-        code_type="Select",
+        name=None,
+        code_type=CodeType.SELECT,
         code="SELECT * FROM table",
         inputs=None,
         summary=None,
         outputs=None,
     )
     # Bug with sqlglot: the second statement is not parsed correctly
-    # assert result[1] == ParsedCode(name="2", code_type="Insert", code="INSERT INTO table VALUES (1, 2, 3)")
+    # assert result[1] == ParsedCode(name=None, code_type=CodeType.INSERT, code="INSERT INTO table VALUES (1, 2, 3)")
     assert result[1] == ParsedCode(
-        name="2",
-        code_type="Insert",
-        code="INSERT INTO VALUES (1, 2, 3)",
+        name=None,
+        code_type=CodeType.INSERT,
+        code="INSERT INTO table VALUES (1, 2, 3)",
         inputs=None,
         summary=None,
         outputs=None,
@@ -118,8 +114,8 @@ def test_incorrect_sql_syntax(tmp_path):
     result = handler.extract_code(p)
     assert len(result) == 1
     assert result[0] == ParsedCode(
-        name="1",
-        code_type="Select",
+        name=None,
+        code_type=CodeType.SELECT,
         code="SELECT FROM table",
         inputs=None,
         summary=None,
