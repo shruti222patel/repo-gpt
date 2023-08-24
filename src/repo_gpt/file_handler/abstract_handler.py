@@ -28,6 +28,16 @@ class ParsedCode:
         return self.code < other.code
 
 
+@dataclass(frozen=True)
+class VSCodeExtCodeLensCode:
+    name: str
+    code: str
+    start_line: int
+
+    def __lt__(self, other: "VSCodeExtCodeLensCode"):
+        return self.code < other.code
+
+
 class AbstractHandler(ABC):
     @abstractmethod
     def extract_code(self, filepath) -> List[ParsedCode]:

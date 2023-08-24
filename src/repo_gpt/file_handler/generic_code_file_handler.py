@@ -4,7 +4,12 @@ from typing import List, Tuple
 
 from tree_sitter_languages import get_language, get_parser
 
-from .abstract_handler import AbstractHandler, CodeType, ParsedCode
+from .abstract_handler import (
+    AbstractHandler,
+    CodeType,
+    ParsedCode,
+    VSCodeExtCodeLensCode,
+)
 
 
 class GenericCodeFileHandler(AbstractHandler):
@@ -38,6 +43,54 @@ class GenericCodeFileHandler(AbstractHandler):
         self.language = get_language(lang)
         self.parser = get_parser(lang)
         self.parser.set_language(self.language)
+
+    """ VSCode Extension CodeLens """
+
+    def extract_vscode_ext_codelens(
+        self, filepath: Path
+    ) -> List[VSCodeExtCodeLensCode]:
+        with open(filepath, "r", encoding="utf-8") as source_code:
+            code = source_code.read()
+            tree = self.parser.parse(bytes(code, "utf8"))
+            return self.parse_vscode_ext_codelens(tree)
+
+    def parse_vscode_ext_codelens(self, tree) -> List[VSCodeExtCodeLensCode]:
+        parsed_nodes = []
+        root_node = tree.root_node
+        for node in root_node.children:
+            if node.type == self.function_node_type:
+                parsed_nodes.append(self.get_vscode_function_code(node))
+            elif node.type == self.class_node_type:
+                parsed_nodes.extend(self.get_vscode_class_and_method_code(node))
+        return parsed_nodes
+
+    def get_vscode_function_code(self, function_node) -> VSCodeExtCodeLensCode:
+        name = self.get_function_name(function_node)
+        return VSCodeExtCodeLensCode(
+            name=name,
+            start_line=function_node.start_point[0],
+            code=function_node.text.decode("utf8"),
+        )
+
+    def get_vscode_class_and_method_code(
+        self, class_node
+    ) -> List[VSCodeExtCodeLensCode]:
+        class_name = self.get_class_name(class_node)
+        parsed_nodes = [
+            VSCodeExtCodeLensCode(
+                name=class_name,
+                start_line=class_node.start_point[0],
+                code=class_node.text.decode("utf8"),
+            )
+        ]
+        for node in class_node.children:
+            if node.type == self.class_internal_node_type:
+                for n in node.named_children:
+                    if n.type == self.method_node_type:
+                        parsed_nodes.append(self.get_vscode_function_code(n))
+        return parsed_nodes
+
+    """ General Repo GPT """
 
     def get_function_name(self, function_node):
         for node in function_node.named_children:
