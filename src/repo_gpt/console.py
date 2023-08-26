@@ -34,6 +34,6 @@ def pretty_print_code(similar_code_df, language: str):
             + str(round(r[1].similarities, 3))
         )
         syntax = Syntax(
-            "\n".join(r[1].code.split("\n")[:n_lines]), language
+            "\n".join(r[1].extracted_code.split("\n")[:n_lines]), language
         )  # TODO: make this dynamic
         console.print(syntax)

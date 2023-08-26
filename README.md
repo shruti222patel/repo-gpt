@@ -129,7 +129,17 @@ Here are the steps to set up your development environment:
 You can view the output of the `code_embeddings.pkl` using the following command:
 
 ```shell
+poetry shell
+python
 pd.read_pickle('./.repo_gpt/code_embeddings.pkl', compression='infer')
+```
+
+#### Interpreter
+```shell
+poetry shell
+ipython
+%load_ext autoreload
+%autoreload 2
 ```
 
 ## Roadmap

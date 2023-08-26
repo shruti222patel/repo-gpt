@@ -95,26 +95,14 @@ class SearchService:
         console.print("🤖 Answer from `GPT3.5` 🤖")
         console.print(ans_md)
 
-    def analyze_file(self, file_path: str):
+    def analyze_file(self, file_path: str, output_html: bool = False):
         with open(file_path, "r") as f:
             code = f.read()
 
-        self.explain(code)
-        # console.print("Analyzing your code...")
+        self.explain(code, output_html=output_html)
 
-    #         self.openai_service.query_stream(
-    #             f"""Please explain the following {self.language} code.
-    #
-    # ```{self.language}
-    # {code}
-    #         ```""",
-    #             system_prompt=f"""You are a world-class {self.language} developer and you are explaining the following code to a junior developer. Organize your explanation as a markdown-format.""",
-    #         )
-    # ans_md = Markdown(ans)
-    # console.print("🤖 Answer from `GPT3.5` 🤖")
-    # console.print(ans_md)
-
-    def explain(self, code: str):
+    def explain(self, code: str, output_html: bool = False):
+        format = "html" if output_html else "markdown"
         try:
             explanation = self.openai_service.query_stream(
                 f"""Please explain the following {self.language} function.
@@ -122,7 +110,7 @@ class SearchService:
 ```{self.language}
 {code}
 ```""",
-                system_prompt=f"""You are a world-class {self.language} developer and you are explaining the following code to a junior developer. Organize your explanation as a markdown-format.""",
+                system_prompt=f"""You are a world-class {self.language} developer and you are explaining the following code to a junior developer. Be concise. Organize your explanation in {format}.""",
             )
             return explanation
         except Exception as e:
