@@ -18,7 +18,7 @@ def test_single_sql_statement(tmp_path):
 
     assert len(result) == 1
     assert result[0] == VSCodeExtCodeLensCode(
-        name="select", code="SELECT * FROM table", start_line=0
+        name="select", code="SELECT * FROM table", start_line=0, end_line=0
     )
 
 
@@ -84,6 +84,7 @@ def test_cte_extraction(sql_file):
     assert result[0].name == "select"
     assert "WITH CTE_Sales AS" in result[0].code
     assert result[0].start_line == 2
+    assert result[0].end_line == 17
 
 
 def test_update_extraction(sql_file):
@@ -91,6 +92,7 @@ def test_update_extraction(sql_file):
     assert result[1].name == "update"
     assert "UPDATE products" in result[1].code
     assert result[1].start_line == 20
+    assert result[1].end_line == 22
 
 
 def test_delete_extraction(sql_file):
@@ -98,6 +100,7 @@ def test_delete_extraction(sql_file):
     assert result[2].name == "delete"
     assert "DELETE FROM sales" in result[2].code
     assert result[2].start_line == 25
+    assert result[2].end_line == 26
 
 
 def test_insert_extraction(sql_file):
@@ -105,6 +108,7 @@ def test_insert_extraction(sql_file):
     assert result[3].name == "insert"
     assert "INSERT INTO products" in result[3].code
     assert result[3].start_line == 29
+    assert result[3].end_line == 30
 
 
 def test_function_extraction(sql_file):
@@ -112,6 +116,7 @@ def test_function_extraction(sql_file):
     assert result[4].name == "function"
     assert "CREATE OR REPLACE FUNCTION get_total_sales" in result[4].code
     assert result[4].start_line == 33
+    assert result[4].end_line == 41
 
 
 def test_function_call_extraction(sql_file):
@@ -119,6 +124,7 @@ def test_function_call_extraction(sql_file):
     assert result[5].name == "select"
     assert "SELECT get_total_sales(5)" in result[5].code
     assert result[5].start_line == 44
+    assert result[5].end_line == 44
 
 
 def test_nested_sql_statements(tmp_path):
@@ -133,7 +139,10 @@ def test_nested_sql_statements(tmp_path):
 
     assert len(result) == 1
     assert result[0] == VSCodeExtCodeLensCode(
-        name="select", code="SELECT * FROM (SELECT id FROM table)", start_line=0
+        name="select",
+        code="SELECT * FROM (SELECT id FROM table)",
+        start_line=0,
+        end_line=0,
     )
 
 
@@ -151,10 +160,13 @@ def test_comments_in_sql_file(tmp_path):
 
     assert len(result) == 2
     assert result[0] == VSCodeExtCodeLensCode(
-        name="select", code="SELECT * FROM table", start_line=0
+        name="select", code="SELECT * FROM table", start_line=0, end_line=0
     )
     assert result[1] == VSCodeExtCodeLensCode(
-        name="insert", code="INSERT INTO table VALUES (1, 2, 3)", start_line=1
+        name="insert",
+        code="INSERT INTO table VALUES (1, 2, 3)",
+        start_line=1,
+        end_line=1,
     )
 
 
@@ -170,5 +182,5 @@ def test_incorrect_sql_syntax(tmp_path):
 
     assert len(result) == 1
     assert result[0] == VSCodeExtCodeLensCode(
-        name="select", code="SELECT FROM table", start_line=0
+        name="select", code="SELECT FROM table", start_line=0, end_line=0
     )

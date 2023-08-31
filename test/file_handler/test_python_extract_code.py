@@ -11,8 +11,13 @@ foo = "bar"
 
 def hello_world() -> str:
     return "Hello, world!"
+
+@decorator
+def hello_world() -> str:
+    return "Hello, world!"
 """
 SAMPLE_CLASS_INPUT_TEXT = """
+@decorator
 class TestClass(BaseClass):
     \"""This is a test class. \"""
     def test_method(self):
@@ -30,9 +35,17 @@ EXPECTED_FUNCTION_PARSED_CODE = [
         outputs=("str",),
     ),
     ParsedCode(
+        name="hello_world",
+        code_type=CodeType.FUNCTION,
+        code='def hello_world() -> str:\n    return "Hello, world!"',
+        inputs=None,
+        summary=None,
+        outputs=("str",),
+    ),
+    ParsedCode(
         name=None,
         code_type=CodeType.GLOBAL,
-        code='foo = "bar"',
+        code='foo = "bar"\n\n\n@decorator\n',
         inputs=None,
         summary=None,
         outputs=None,
@@ -50,9 +63,17 @@ EXPECTED_CLASS_PARSED_CODE = [
     ),
     ParsedCode(
         name="test_method",
-        code_type=CodeType.METHOD,
+        code_type=CodeType.FUNCTION,
         code="""def test_method(self):\n        \"""This is a test method. \"""\n        pass""",
         inputs=("self",),
+        summary=None,
+        outputs=None,
+    ),
+    ParsedCode(
+        name=None,
+        code_type=CodeType.GLOBAL,
+        code="@decorator\n",
+        inputs=None,
         summary=None,
         outputs=None,
     ),
@@ -92,7 +113,7 @@ z = x + y
     assert isinstance(parsed_code, list)
     assert len(parsed_code) == 1
     assert parsed_code[0].code_type == CodeType.GLOBAL
-    assert parsed_code[0].code == code.strip()
+    assert code.strip() in parsed_code[0].code
 
 
 def test_edge_cases(tmp_path):

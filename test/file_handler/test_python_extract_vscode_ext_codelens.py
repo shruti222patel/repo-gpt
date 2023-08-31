@@ -9,6 +9,10 @@ handler = PythonFileHandler()
 SAMPLE_INPUT_TEXT_FUNCTION = """
 def hello_world():
     print("Hello, world!")
+
+@decorator
+def hello_world():
+    print("Hello, world!")
 """
 
 SAMPLE_INPUT_TEXT_CLASS = """
@@ -22,18 +26,29 @@ EXPECTED_OUTPUT_FUNCTION = [
     VSCodeExtCodeLensCode(
         name="hello_world",
         start_line=1,
+        end_line=2,
         code='def hello_world():\n    print("Hello, world!")',
-    )
+    ),
+    VSCodeExtCodeLensCode(
+        name="hello_world",
+        start_line=5,
+        end_line=6,
+        code='def hello_world():\n    print("Hello, world!")',
+    ),
 ]
 
 EXPECTED_OUTPUT_CLASS = [
     VSCodeExtCodeLensCode(
         name="SampleClass",
         start_line=1,
+        end_line=3,
         code="class SampleClass:\n    def method_one(self):\n        pass",
     ),
     VSCodeExtCodeLensCode(
-        name="method_one", start_line=2, code="def method_one(self):\n        pass"
+        name="method_one",
+        start_line=2,
+        end_line=3,
+        code="def method_one(self):\n        pass",
     ),
 ]
 

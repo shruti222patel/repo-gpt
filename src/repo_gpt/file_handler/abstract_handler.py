@@ -39,6 +39,7 @@ class VSCodeExtCodeLensCode:
     name: str
     code: str
     start_line: int
+    end_line: int
 
     def __lt__(self, other: "VSCodeExtCodeLensCode"):
         return self.code < other.code

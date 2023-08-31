@@ -1,6 +1,5 @@
 # Set your OpenAI API key as an environment variable
 import os
-import time
 
 import numpy as np
 import openai as openai
@@ -117,13 +116,14 @@ class OpenAIService:
             delta = chunk["choices"][0]["delta"]
             if "content" in delta:
                 content = delta["content"]
-                for char in content:
-                    print(
-                        char, end="", flush=True
-                    )  # flush ensures the character is printed immediately
-                    time.sleep(
-                        0.01
-                    )  # pause for 10 milliseconds (adjust as needed for desired typing speed)
+                print(content, end="")
+                # for char in content:
+                #     print(
+                #         char, end="", flush=True
+                #     )  # flush ensures the character is printed immediately
+                #     time.sleep(
+                #         0.01
+                #     )  # pause for 10 milliseconds (adjust as needed for desired typing speed)
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):

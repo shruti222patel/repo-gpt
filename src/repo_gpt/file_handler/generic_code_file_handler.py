@@ -1,6 +1,6 @@
 from collections import deque
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from tree_sitter_languages import get_language, get_parser
 
@@ -27,6 +27,7 @@ class GenericCodeFileHandler(AbstractHandler):
         method_name_node_type: str,
         function_output_node_type: str = "output",
         function_parameters_node_type: str = "parameters",
+        root_node_type: str = "source_file",
     ):
         self.function_name_node_type = function_name_node_type
         self.class_name_node_type = class_name_node_type
@@ -39,6 +40,7 @@ class GenericCodeFileHandler(AbstractHandler):
         self.function_parameters_node_type = function_parameters_node_type
         self.parent_class_name_node_type = parent_class_name_node_type
         self.method_name_node_type = method_name_node_type
+        self.root_node_type = root_node_type
 
         self.language = get_language(lang)
         self.parser = get_parser(lang)
@@ -54,41 +56,117 @@ class GenericCodeFileHandler(AbstractHandler):
             tree = self.parser.parse(bytes(code, "utf8"))
             return self.parse_vscode_ext_codelens(tree)
 
+    def _query(self, query: str, root_node) -> List[Tuple[str, int, int]]:
+        query = self.language.query(query)
+        return query.captures(root_node)
+
     def parse_vscode_ext_codelens(self, tree) -> List[VSCodeExtCodeLensCode]:
+        return self.parse_code(
+            tree,
+            self.get_vscode_class_code,
+            self.get_vscode_function_code,
+            self.get_vscode_function_code,
+        )
+
+    def parse_code(
+        self,
+        tree,
+        class_parsing_func,
+        function_parsing_func,
+        method_parsing_func,
+        global_parsing_func=None,
+    ) -> List[Any]:
         parsed_nodes = []
         root_node = tree.root_node
-        for node in root_node.children:
-            if node.type == self.function_node_type:
-                parsed_nodes.append(self.get_vscode_function_code(node))
-            elif node.type == self.class_node_type:
-                parsed_nodes.extend(self.get_vscode_class_and_method_code(node))
+
+        # Get all classes
+        class_matches = self._get_all_classes(root_node)
+        for match in class_matches:
+            parsed_nodes.append(class_parsing_func(match[0]))
+
+        # Get all functions
+        function_matches = self._get_all_functions(root_node)
+        for match in function_matches:
+            parsed_nodes.append(function_parsing_func(match[0]))
+
+        # Get all methods
+        method_matches = []
+        if self.method_node_type != self.function_node_type:
+            method_matches = self._get_all_methods(root_node)
+            for match in method_matches:
+                parsed_nodes.append(method_parsing_func(match[0]))
+
+        if global_parsing_func != None:
+            parsed_node = self._get_all_global_code(
+                root_node, class_matches + function_matches + method_matches
+            )
+            if parsed_node != None:
+                parsed_nodes.append(parsed_node)
+
         return parsed_nodes
+
+    def _get_all_classes(self, node):
+        class_query = f"""
+                   ({self.class_node_type}) @class
+                   """
+        return self._query(class_query, node)
+
+    def _get_all_functions(self, node):
+        function_query = f"""
+                   ({self.function_node_type}) @function
+                   """
+        return self._query(function_query, node)
+
+    def _get_all_methods(self, node):
+        method_query = f"""
+                   ({self.method_node_type}) @method
+                   """
+        return self._query(method_query, node)
+
+    def _get_all_global_code(self, node, nodes_to_remove=None):
+        source_code = node.text.decode("utf8")
+        # Convert source code to a list of lines
+        lines = source_code.split("\n")
+
+        # Mark lines that belong to functions for removal
+        for node, _ in nodes_to_remove:
+            for line_num in range(node.start_point[0] - 1, node.end_point[0]):
+                lines[line_num] = None
+
+        # Remove the marked lines
+        remaining_lines = [
+            line for line in lines if line is not None and line.strip() != ""
+        ]
+        if len(remaining_lines) == 0:
+            return None
+        modified_source_code = "\n".join(line for line in lines if line is not None)
+
+        return ParsedCode(
+            name=None,
+            code_type=CodeType.GLOBAL,
+            code=modified_source_code,
+            summary=None,
+            inputs=None,
+            outputs=None,
+        )
 
     def get_vscode_function_code(self, function_node) -> VSCodeExtCodeLensCode:
         name = self.get_function_name(function_node)
         return VSCodeExtCodeLensCode(
             name=name,
             start_line=function_node.start_point[0],
+            end_line=function_node.end_point[0],
             code=function_node.text.decode("utf8"),
         )
 
-    def get_vscode_class_and_method_code(
-        self, class_node
-    ) -> List[VSCodeExtCodeLensCode]:
+    def get_vscode_class_code(self, class_node) -> List[VSCodeExtCodeLensCode]:
         class_name = self.get_class_name(class_node)
-        parsed_nodes = [
-            VSCodeExtCodeLensCode(
-                name=class_name,
-                start_line=class_node.start_point[0],
-                code=class_node.text.decode("utf8"),
-            )
-        ]
-        for node in class_node.children:
-            if node.type == self.class_internal_node_type:
-                for n in node.named_children:
-                    if n.type == self.method_node_type:
-                        parsed_nodes.append(self.get_vscode_function_code(n))
-        return parsed_nodes
+        return VSCodeExtCodeLensCode(
+            name=class_name,
+            start_line=class_node.start_point[0],
+            code=class_node.text.decode("utf8"),
+            end_line=class_node.end_point[0],
+        )
 
     """ General Repo GPT """
 
@@ -112,30 +190,14 @@ class GenericCodeFileHandler(AbstractHandler):
             return self.parse_tree(tree)
 
     def parse_tree(self, tree) -> List[ParsedCode]:
-        parsed_nodes = []
-        root_node = tree.root_node
-        global_nodes = []
-        for node in root_node.children:
-            if node.type == self.function_node_type:
-                parsed_nodes.append(self.get_function_parsed_code(node))
-            elif node.type == self.class_node_type:
-                parsed_nodes.extend(self.get_class_and_method_parsed_code(node))
-            else:
-                global_nodes.append(node)
-        if len(global_nodes) > 0:
-            parsed_nodes.append(self.get_global_code(global_nodes))
-        return parsed_nodes
-
-    def get_global_code(self, global_nodes: []) -> ParsedCode:
-        code = "\n".join([node.text.decode("utf8") for node in global_nodes])
-        return ParsedCode(
-            name=None,
-            code_type=CodeType.GLOBAL,
-            code=code,
-            summary=None,
-            inputs=None,
-            outputs=None,
+        parsed_codes = self.parse_code(
+            tree,
+            self.get_class_parsed_code,
+            self.get_function_parsed_code,
+            self.get_function_parsed_code,
+            self._get_all_global_code,
         )
+        return parsed_codes
 
     def get_function_parsed_code(self, function_node, is_method=False) -> ParsedCode:
         name = self.get_function_name(function_node)
@@ -149,37 +211,31 @@ class GenericCodeFileHandler(AbstractHandler):
             outputs=output_params,
         )
 
-    def get_class_and_method_parsed_code(self, class_node) -> List[ParsedCode]:
-        parsed_codes = []
+    def get_class_parsed_code(self, class_node) -> ParsedCode:
         class_name = self.get_class_name(class_node)
         parent_classes = self.get_parent_classes(class_node)
         class_summary = [f"class: {class_name}\n    parent classes: {parent_classes}\n"]
         for node in class_node.named_children:
             if node.type == self.class_internal_node_type:
+                # TODO get method nodes by query instea
                 for n in node.named_children:
                     if n.type == self.method_node_type:
                         # function
                         parsed_code = self.get_function_parsed_code(n, is_method=True)
-                        # TODO figure out how to get docstring
-                        parsed_codes.append(parsed_code)
                         input_params, output_params = self.get_function_parameters(n)
                         class_summary.append(
                             f"    method: {parsed_code.name}\n        input parameters: {input_params}\n        output parameters: {output_params}\n        code: ...\n"
                         )
 
         name = self.get_class_name(class_node)
-        parsed_codes.append(
-            ParsedCode(
-                name=name,
-                code_type=CodeType.CLASS,
-                code=class_node.text.decode("utf8"),
-                summary="\n".join(class_summary),
-                inputs=parent_classes,
-                outputs=None,
-            )
+        return ParsedCode(
+            name=name,
+            code_type=CodeType.CLASS,
+            code=class_node.text.decode("utf8"),
+            summary="\n".join(class_summary),
+            inputs=parent_classes,
+            outputs=None,
         )
-
-        return parsed_codes
 
     def get_parent_classes(self, class_node) -> Tuple[str, ...]:
         for child in class_node.children:
@@ -283,4 +339,5 @@ class TypeScriptFileHandler(GenericCodeFileHandler):
             function_output_node_type="type_annotation",
             function_parameters_node_type="formal_parameters",
             method_name_node_type="property_identifier",
+            root_node_type="program",
         )

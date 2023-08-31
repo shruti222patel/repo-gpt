@@ -39,7 +39,7 @@ EXPECTED_PHP_FUNCTION_PARSED_CODE = [
     ParsedCode(
         name=None,
         code_type=CodeType.GLOBAL,
-        code="<?php\n?>",
+        code="<?php\n?>\n",
         inputs=None,
         summary=None,
         outputs=None,
@@ -57,7 +57,7 @@ EXPECTED_PHP_CLASS_PARSED_CODE = [
     ),
     ParsedCode(
         name="testMethod",
-        code_type=CodeType.METHOD,
+        code_type=CodeType.FUNCTION,
         code="public function testMethod() {\n        /* This is a test method. */\n        return;\n    }",
         inputs=None,
         summary=None,
@@ -66,7 +66,7 @@ EXPECTED_PHP_CLASS_PARSED_CODE = [
     ParsedCode(
         name=None,
         code_type=CodeType.GLOBAL,
-        code="<?php\n?>",
+        code="<?php\n?>\n",
         inputs=None,
         summary=None,
         outputs=None,

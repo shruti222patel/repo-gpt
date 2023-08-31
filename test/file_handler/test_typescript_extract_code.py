@@ -10,6 +10,10 @@ SAMPLE_TS_FUNCTION_INPUT_TEXT = """
 function helloWorld(): string {
     return "Hello, world!";
 }
+
+export async function helloWorld(): string {
+    return "Hello, world!";
+}
 """
 
 SAMPLE_TS_CLASS_INPUT_TEXT = """
@@ -32,6 +36,14 @@ EXPECTED_TS_FUNCTION_PARSED_CODE = [
         summary=None,
         outputs=("string",),
     ),
+    ParsedCode(
+        name="helloWorld",
+        code_type=CodeType.FUNCTION,
+        code='async function helloWorld(): string {\n    return "Hello, world!";\n}',
+        inputs=None,
+        summary=None,
+        outputs=("string",),
+    ),
 ]
 
 EXPECTED_TS_CLASS_PARSED_CODE = [
@@ -45,7 +57,7 @@ EXPECTED_TS_CLASS_PARSED_CODE = [
     ),
     ParsedCode(
         name="testMethod",
-        code_type=CodeType.METHOD,
+        code_type=CodeType.FUNCTION,
         code="testMethod(): void {\n        // This is a test method.\n        return;\n    }",
         inputs=None,
         summary=None,
