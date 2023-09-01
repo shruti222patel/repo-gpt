@@ -42,7 +42,6 @@ class GenericSQLFileHandler(AbstractHandler):
             if code_type is not None:
                 parsed_nodes.append(
                     VSCodeExtCodeLensCode(
-                        code=node.text.decode("utf8"),
                         name=code_type.value,
                         start_line=node.start_point[0],
                         end_line=node.end_point[0],

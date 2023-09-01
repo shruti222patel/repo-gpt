@@ -37,12 +37,11 @@ class ParsedCode:
 @dataclass(frozen=True)
 class VSCodeExtCodeLensCode:
     name: str
-    code: str
     start_line: int
     end_line: int
 
     def __lt__(self, other: "VSCodeExtCodeLensCode"):
-        return self.code < other.code
+        return self.start_line < other.start_line
 
 
 class AbstractHandler(ABC):

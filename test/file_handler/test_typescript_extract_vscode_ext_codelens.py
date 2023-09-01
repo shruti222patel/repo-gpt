@@ -32,13 +32,13 @@ EXPECTED_OUTPUT_FUNCTION = [
         name="helloWorld",
         start_line=1,
         end_line=3,
-        code='function helloWorld(): string {\n    return "Hello, world!";\n}',
+        # # code='function helloWorld(): string {\n    return "Hello, world!";\n}',
     ),
     VSCodeExtCodeLensCode(
         name="helloWorld",
         start_line=5,
         end_line=7,
-        code='async function helloWorld(): string {\n    return "Hello, world!";\n}',
+        # code='async function helloWorld(): string {\n    return "Hello, world!";\n}',
     ),
 ]
 
@@ -47,13 +47,13 @@ EXPECTED_OUTPUT_CLASS = [
         name="SampleClass",
         start_line=1,
         end_line=5,
-        code="class SampleClass {\n    methodOne(): void {\n        // Do something\n    }\n}",
+        # code="class SampleClass {\n    methodOne(): void {\n        // Do something\n    }\n}",
     ),
     VSCodeExtCodeLensCode(
         name="methodOne",
         start_line=2,
         end_line=4,
-        code="methodOne(): void {\n        // Do something\n    }",
+        # code="methodOne(): void {\n        // Do something\n    }",
     ),
 ]
 

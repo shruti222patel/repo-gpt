@@ -156,7 +156,7 @@ class GenericCodeFileHandler(AbstractHandler):
             name=name,
             start_line=function_node.start_point[0],
             end_line=function_node.end_point[0],
-            code=function_node.text.decode("utf8"),
+            # code=function_node.text.decode("utf8"),
         )
 
     def get_vscode_class_code(self, class_node) -> List[VSCodeExtCodeLensCode]:
@@ -164,7 +164,7 @@ class GenericCodeFileHandler(AbstractHandler):
         return VSCodeExtCodeLensCode(
             name=class_name,
             start_line=class_node.start_point[0],
-            code=class_node.text.decode("utf8"),
+            # code=class_node.text.decode("utf8"),
             end_line=class_node.end_point[0],
         )
 

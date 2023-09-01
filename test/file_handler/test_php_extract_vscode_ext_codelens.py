@@ -32,7 +32,7 @@ EXPECTED_OUTPUT_FUNCTION = [
         name="helloWorld",
         start_line=2,
         end_line=4,
-        code='function helloWorld() {\n    echo "Hello, world!";\n}',
+        # code='function helloWorld() {\n    echo "Hello, world!";\n}',
     )
 ]
 
@@ -41,13 +41,13 @@ EXPECTED_OUTPUT_CLASS = [
         name="SampleClass",
         start_line=2,
         end_line=6,
-        code="class SampleClass {\n    public function methodOne() {\n        // Do something\n    }\n}",
+        # code="class SampleClass {\n    public function methodOne() {\n        // Do something\n    }\n}",
     ),
     VSCodeExtCodeLensCode(
         name="methodOne",
         start_line=3,
         end_line=5,
-        code="public function methodOne() {\n        // Do something\n    }",
+        # code="public function methodOne() {\n        // Do something\n    }",
     ),
 ]
 
