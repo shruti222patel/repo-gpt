@@ -69,7 +69,7 @@ class OpenAIService:
     GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in markdown-formatted, bulleted lists."
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
 
-    def __init__(self, openai_api_key):
+    def __init__(self, openai_api_key: str | None = None):
         openai.api_key = (
             openai_api_key if openai_api_key else os.environ["OPENAI_API_KEY"]
         )

@@ -154,6 +154,7 @@ Here are the improvements we are currently considering:
 - [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
 - [X] Add SQL file handler
 - [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
-- [ ] Create VSCode extension
+- [X] Create VSCode extension
 - [ ] Ensure files can be added & deleted and the indexing picks up on the changes.
 - [ ] Add .repogptignore file to config & use it in the indexing command
+- [ ] Use pygments library for prettier code formatting

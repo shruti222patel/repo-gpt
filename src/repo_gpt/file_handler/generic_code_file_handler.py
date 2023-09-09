@@ -1,6 +1,6 @@
 from collections import deque
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 from tree_sitter_languages import get_language, get_parser
 
@@ -28,6 +28,9 @@ class GenericCodeFileHandler(AbstractHandler):
         function_output_node_type: str = "output",
         function_parameters_node_type: str = "parameters",
         root_node_type: str = "source_file",
+        function_query: Optional[str] = None,
+        class_query: Optional[str] = None,
+        method_query: Optional[str] = None,
     ):
         self.function_name_node_type = function_name_node_type
         self.class_name_node_type = class_name_node_type
@@ -45,6 +48,28 @@ class GenericCodeFileHandler(AbstractHandler):
         self.language = get_language(lang)
         self.parser = get_parser(lang)
         self.parser.set_language(self.language)
+
+        self.function_query = (
+            function_query
+            if function_query
+            else f"""
+                   ({self.function_node_type}) @function
+                   """
+        )
+        self.class_query = (
+            class_query
+            if class_query
+            else f"""
+                   ({class_node_type}) @class
+                   """
+        )
+        self.method_query = (
+            method_query
+            if method_query
+            else f"""
+                   ({self.method_node_type}) @method
+                   """
+        )
 
     """ VSCode Extension CodeLens """
 
@@ -106,22 +131,13 @@ class GenericCodeFileHandler(AbstractHandler):
         return parsed_nodes
 
     def _get_all_classes(self, node):
-        class_query = f"""
-                   ({self.class_node_type}) @class
-                   """
-        return self._query(class_query, node)
+        return self._query(self.class_query, node)
 
     def _get_all_functions(self, node):
-        function_query = f"""
-                   ({self.function_node_type}) @function
-                   """
-        return self._query(function_query, node)
+        return self._query(self.function_query, node)
 
     def _get_all_methods(self, node):
-        method_query = f"""
-                   ({self.method_node_type}) @method
-                   """
-        return self._query(method_query, node)
+        return self._query(self.method_query, node)
 
     def _get_all_global_code(self, node, nodes_to_remove=None):
         source_code = node.text.decode("utf8")
@@ -340,4 +356,43 @@ class TypeScriptFileHandler(GenericCodeFileHandler):
             function_parameters_node_type="formal_parameters",
             method_name_node_type="property_identifier",
             root_node_type="program",
+        )
+
+
+class ElixirFileHandler(GenericCodeFileHandler):
+    def __init__(self):
+        super().__init__(
+            lang="elixir",
+            function_name_node_type="identifier",  # Placeholder, might differ
+            class_name_node_type="identifier",  # Elixir has modules, not classes
+            function_node_type=None,
+            class_node_type=None,  # Elixir has modules, not classes
+            method_node_type=None,
+            class_internal_node_type="module_body",
+            parent_class_node_type="use_clause",  # Elixir uses `use` for certain extensions
+            function_output_node_type="type_annotation",  # Placeholder, Elixir's type annotations are different
+            function_parameters_node_type="function_parameters",
+            parent_class_name_node_type="module_name",  # Elixir has modules, not classes
+            method_name_node_type="function_name",
+            root_node_type="program",
+            function_query="""
+(call
+  target: (identifier) @ignore
+  (arguments
+    [
+      ; regular function clause
+      (call target: (identifier) @name)
+      ; function clause with a guard clause
+      (binary_operator
+        left: (call target: (identifier) @name)
+        operator: "when")
+    ])
+  (#match? @ignore "^(def|defp|defdelegate|defguard|defguardp|defmacro|defmacrop|defn|defnp)$")) @function
+""",
+            class_query="""
+(call
+  target: (identifier) @ignore
+  (arguments (alias) @name)
+  (#match? @ignore "^(defmodule|defprotocol)$")) @definition.module
+""",
         )

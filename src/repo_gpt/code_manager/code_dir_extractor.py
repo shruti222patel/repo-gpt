@@ -1,89 +1,134 @@
 import hashlib
 import os
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
+import pandas as pd
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
 from tqdm import tqdm
 
 from ..file_handler.abstract_handler import ParsedCode
 from .abstract_extractor import AbstractCodeExtractor
 
 
-class CodeDirExtractor(AbstractCodeExtractor):
-    def __init__(self, code_root_path: Path, output_path: Path):
-        self.code_root_path = code_root_path
-        self.output_path = output_path
+class CodeDirectoryExtractor(AbstractCodeExtractor):
+    def __init__(
+        self,
+        root_directory_path: Path,
+        output_filepath: Path,
+        code_df: pd.DataFrame | None = None,
+    ):
+        self.root_directory_path = root_directory_path
+        self.output_filepath = output_filepath
+        self.all_code_files = self._find_all_code_files()
+        self.code_df = code_df
 
-    def generate_md5(self, filepath: str, chunk_size: int = 4096) -> str:
-        hash = hashlib.md5()
-        with open(filepath, "rb") as f:
-            chunk = f.read(chunk_size)
+    def generate_md5_checksum(self, file_path: str, chunk_size: int = 4096) -> str:
+        file_hash = hashlib.md5()
+        with open(file_path, "rb") as file:
+            chunk = file.read(chunk_size)
             while chunk:
-                hash.update(chunk)
-                chunk = f.read(chunk_size)
-        return hash.hexdigest()
+                file_hash.update(chunk)
+                chunk = file.read(chunk_size)
+        return file_hash.hexdigest()
 
-    def extract_code_files(self) -> List[str]:
-        code_files = []
-        for root, dirs, files in tqdm(
-            os.walk(self.code_root_path), desc="Scanning directories"
+    def _find_all_code_files(self) -> List[str]:
+        all_code_files = []
+        for current_root, directories, files in tqdm(
+            os.walk(self.root_directory_path), desc="Scanning directories"
         ):
-            root_path = Path(root).relative_to(self.code_root_path)
+            relative_path = Path(current_root).relative_to(self.root_directory_path)
 
-            # Skip directories listed in .gitignore
-            dirs[:] = [
-                d for d in dirs if self.is_dir_parsable(os.path.join(root_path, d))
+            # Ignore directories listed in .gitignore
+            directories[:] = [
+                dir
+                for dir in directories
+                if self.is_dir_parsable(os.path.join(relative_path, dir))
             ]
 
             for file in files:
-                file_path = root_path / file
-                code_files.append(self.code_root_path / file_path)
-        return code_files
+                full_file_path = relative_path / file
+                all_code_files.append(self.root_directory_path / full_file_path)
+        return all_code_files
 
-    def extract_functions(
-        self, embedding_code_file_checksums: dict
-    ) -> List[ParsedCode]:
-        code_files = (
-            self.extract_code_files()
-            if embedding_code_file_checksums is None
-            else embedding_code_file_checksums.values()
+    def _map_checksum_to_filepath(self) -> Dict[str, str]:  # checksum : filepath
+        return (
+            self.code_df.drop_duplicates(subset=["file_checksum"])[
+                ["filepath", "file_checksum"]
+            ]
+            .set_index("file_checksum")
+            .to_dict()["filepath"]
         )
-        code_blocks = []
-        for code_filepath in code_files:
-            print(f"🟢 Processing {code_filepath}")
-            file_checksum = self.generate_md5(code_filepath)
-            if (
-                embedding_code_file_checksums is not None
-                and file_checksum in embedding_code_file_checksums
-            ):
-                print(f"🟡 Skipping -- file unmodified {code_filepath}")
+
+    def _map_filepath_to_checksum(self) -> Dict[str, str]:  # filepath : checksum
+        return (
+            self.code_df.drop_duplicates(subset=["file_checksum"])[
+                ["filepath", "file_checksum"]
+            ]
+            .set_index("filepath")
+            .to_dict()["file_checksum"]
+        )
+
+    def is_dir_parsable(self, dirpath: str) -> bool:
+        # Check if the directory is hidden
+        dirname = Path(dirpath).name
+        if dirname.startswith("."):
+            return False
+
+        gitignore = self.get_gitignore()
+        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
+
+        if spec.match_file(dirpath):
+            return False
+
+        return True
+
+    def get_gitignore(self) -> List[str]:
+        gitignore_path = self.root_directory_path / ".gitignore"
+        if gitignore_path.is_file():
+            with open(gitignore_path, "r") as file:
+                return file.read().splitlines()
+        else:
+            return []
+
+    def extract_code_blocks_from_files(self) -> List[ParsedCode]:
+        code_file_paths = self.all_code_files
+        filepath_to_checksum = self._map_filepath_to_checksum()
+
+        extracted_blocks = []
+        for code_file_path in code_file_paths:
+            print(f"🟢 Processing {code_file_path}")
+            current_file_checksum = self.generate_md5_checksum(code_file_path)
+            if filepath_to_checksum.get(code_file_path, None) == current_file_checksum:
+                print(f"🟡 Skipping -- file unmodified {code_file_path}")
                 continue
+
             try:
-                file_code_blocks = self.extract_functions_from_file(
-                    code_filepath, file_checksum
+                extracted_file_blocks = self.extract_code_blocks_from_single_file(
+                    code_file_path, current_file_checksum
                 )
             except Exception as e:
-                # logger.error(f"Error extracting code from {code_filepath}: {e}")
-                print(f"🔴 Skipping -- error extracting code {code_filepath}")
+                print(f"🔴 Skipping -- error extracting code {code_file_path}")
                 continue
-            if len(file_code_blocks) == 0:
-                print(f"🟡 Skipping -- no functions or classes found {code_filepath}")
+            if not extracted_file_blocks:
+                print(f"🟡 Skipping -- no functions or classes found {code_file_path}")
             else:
                 print(
-                    f"🟢 Extracted {len(file_code_blocks)} functions from {code_filepath}"
+                    f"🟢 Extracted {len(extracted_file_blocks)} functions from {code_file_path}"
                 )
-            code_blocks.extend(file_code_blocks)
-        return code_blocks
+            extracted_blocks.extend(extracted_file_blocks)
+        return extracted_blocks
 
-    def extract_functions_from_file(
-        self, filepath: str, file_checksum: str
+    def extract_code_blocks_from_single_file(
+        self, file_path: str, file_checksum: str
     ) -> List[ParsedCode]:
-        handler = self.get_handler(filepath)
-        code_blocks = []
-        if handler:
-            code_blocks = handler().extract_code(filepath)
-            for code in code_blocks:
-                code.filepath = filepath
-                code.file_checksum = file_checksum
+        handler_for_file = self.get_handler(file_path)
+        extracted_blocks_for_file = []
+        if handler_for_file:
+            extracted_blocks_for_file = handler_for_file().extract_code(file_path)
+            for block in extracted_blocks_for_file:
+                block.filepath = file_path
+                block.file_checksum = file_checksum
 
-        return code_blocks
+        return extracted_blocks_for_file

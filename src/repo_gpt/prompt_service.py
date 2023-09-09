@@ -28,8 +28,13 @@ class PromptService:
             return e.message
 
     def refactor_code(self, code: str, additional_instructions: str):
+        addtion_instruction_query = (
+            f" Additional instructions: {additional_instructions}"
+            if additional_instructions
+            else ""
+        )
         response = self.openai_service.query_stream(
-            f"""Please refactor the following {self.language} function. {additional_instructions}
+            f"""Please refactor the following {self.language} function.{addtion_instruction_query}
 
 ```{self.language}
 {code}

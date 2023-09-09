@@ -52,6 +52,3 @@ class VscodePromptService(PromptService):
         with open(input_code_file_path, "r") as f:
             code = f.read()
         super().refactor_code(code, additional_instructions)
-        # return VscodeMessage(status=Status.SUCCESS,code=refactored_code)
-        # except Exception as e:
-        #     return VscodeMessage(status= Status.ERROR, error=e)

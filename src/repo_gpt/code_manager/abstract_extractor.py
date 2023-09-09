@@ -1,7 +1,7 @@
 import os
 from abc import ABC
 from enum import Enum
-from typing import List, Type
+from typing import Type
 
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
@@ -42,29 +42,6 @@ class AbstractCodeExtractor(ABC):
             return (
                 f"Unknown language for file extension: {os.path.splitext(file_path)[1]}"
             )
-
-    def get_gitignore(self) -> List[str]:
-        gitignore_path = self.code_root_path / ".gitignore"
-        if gitignore_path.is_file():
-            with open(gitignore_path, "r") as file:
-                return file.read().splitlines()
-        else:
-            return []
-
-    def is_file_parsable(self, filepath: str) -> bool:
-        gitignore = self.get_gitignore()
-        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
-        handler_class = self.get_handler(filepath)
-        if handler_class is None or spec.match_file(filepath):
-            return False
-        return True
-
-    def is_dir_parsable(self, dirpath: str) -> bool:
-        gitignore = self.get_gitignore()
-        spec = PathSpec.from_lines(GitWildMatchPattern, gitignore)
-        if spec.match_file(dirpath):
-            return False
-        return True
 
     def get_handler(self, filepath: str) -> Type[FileHandler]:
         _, file_extension = os.path.splitext(filepath)
