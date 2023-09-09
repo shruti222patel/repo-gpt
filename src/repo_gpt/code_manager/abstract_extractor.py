@@ -1,7 +1,7 @@
 import os
 from abc import ABC
 from enum import Enum
-from typing import Type
+from typing import Set, Type
 
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
@@ -31,6 +31,10 @@ class AbstractCodeExtractor(ABC):
         ".php": PHPFileHandler,
         ".ts": TypeScriptFileHandler,
     }
+
+    @staticmethod
+    def get_file_extensions_with_handlers() -> Set[str]:
+        return AbstractCodeExtractor.HANDLER_MAPPING.keys()
 
     def _detect_language(self, file_path):
         """Detect the coding language based on the file's extension using Pygments."""

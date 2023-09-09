@@ -96,12 +96,18 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         code_file_paths = self.all_code_files
         filepath_to_checksum = self._map_filepath_to_checksum()
 
+        parsable_extension = AbstractCodeExtractor.get_file_extensions_with_handlers()
+
         extracted_blocks = []
         for code_file_path in code_file_paths:
-            print(f"🟢 Processing {code_file_path}")
+            # print(f"🟢 Processing {code_file_path}")
             current_file_checksum = self.generate_md5_checksum(code_file_path)
             if filepath_to_checksum.get(code_file_path, None) == current_file_checksum:
                 print(f"🟡 Skipping -- file unmodified {code_file_path}")
+                continue
+
+            if code_file_path.suffix in parsable_extension:
+                print(f"🟡 Skipping -- no file parser for {code_file_path}")
                 continue
 
             try:
@@ -109,7 +115,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
                     code_file_path, current_file_checksum
                 )
             except Exception as e:
-                print(f"🔴 Skipping -- error extracting code {code_file_path}")
+                print(f"🔴 Skipping -- error extracting code {code_file_path}: {str(e)}")
                 continue
             if not extracted_file_blocks:
                 print(f"🟡 Skipping -- no functions or classes found {code_file_path}")
