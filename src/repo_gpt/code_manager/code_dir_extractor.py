@@ -96,7 +96,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         code_file_paths = self.all_code_files
         filepath_to_checksum = self._map_filepath_to_checksum()
 
-        parsable_extension = AbstractCodeExtractor.get_file_extensions_with_handlers()
+        parsable_extensions = AbstractCodeExtractor.get_file_extensions_with_handlers()
 
         extracted_blocks = []
         for code_file_path in code_file_paths:
@@ -106,7 +106,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
                 print(f"🟡 Skipping -- file unmodified {code_file_path}")
                 continue
 
-            if code_file_path.suffix in parsable_extension:
+            if code_file_path.suffix not in parsable_extensions:
                 print(f"🟡 Skipping -- no file parser for {code_file_path}")
                 continue
 
