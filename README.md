@@ -131,6 +131,7 @@ You can view the output of the `code_embeddings.pkl` using the following command
 ```shell
 poetry shell
 python
+import pandas as pd
 pd.read_pickle('./.repo_gpt/code_embeddings.pkl', compression='infer')
 ```
 

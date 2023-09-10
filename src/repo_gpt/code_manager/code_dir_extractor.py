@@ -1,7 +1,7 @@
 import hashlib
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import pandas as pd
 from pathspec import PathSpec
@@ -92,17 +92,19 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         else:
             return []
 
-    def extract_code_blocks_from_files(self) -> List[ParsedCode]:
+    def extract_code_blocks_from_files(self) -> (List[ParsedCode], Set[str]):
         code_file_paths = self.all_code_files
         filepath_to_checksum = self._map_filepath_to_checksum()
 
         parsable_extensions = AbstractCodeExtractor.get_file_extensions_with_handlers()
 
         extracted_blocks = []
+        outdated_checksums = set()
         for code_file_path in code_file_paths:
             # print(f"🟢 Processing {code_file_path}")
             current_file_checksum = self.generate_md5_checksum(code_file_path)
-            if filepath_to_checksum.get(code_file_path, None) == current_file_checksum:
+            existing_filepath_checksum = filepath_to_checksum.get(code_file_path, None)
+            if existing_filepath_checksum == current_file_checksum:
                 print(f"🟡 Skipping -- file unmodified {code_file_path}")
                 continue
 
@@ -111,7 +113,9 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
                 continue
 
             try:
-                extracted_file_blocks = self.extract_code_blocks_from_single_file(
+                if existing_filepath_checksum:
+                    outdated_checksums.add(existing_filepath_checksum)
+                extracted_file_blocks = self._extract_code_blocks_from_single_file(
                     code_file_path, current_file_checksum
                 )
             except Exception as e:
@@ -124,9 +128,9 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
                     f"🟢 Extracted {len(extracted_file_blocks)} functions from {code_file_path}"
                 )
             extracted_blocks.extend(extracted_file_blocks)
-        return extracted_blocks
+        return extracted_blocks, outdated_checksums
 
-    def extract_code_blocks_from_single_file(
+    def _extract_code_blocks_from_single_file(
         self, file_path: str, file_checksum: str
     ) -> List[ParsedCode]:
         handler_for_file = self.get_handler(file_path)

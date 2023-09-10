@@ -33,6 +33,7 @@ def pretty_print_code(similar_code_df, language: str):
             + "  distance="
             + str(round(r[1].similarities, 3))
         )
+        print(r)
         syntax = Syntax(
             "\n".join(r[1].extracted_code.split("\n")[:n_lines]), language
         )  # TODO: make this dynamic

@@ -48,7 +48,6 @@ class CodeManager:
         print("All done! ✨ 🦄 ✨")
 
     def _store_code_dataframe(self, dataframe):
-        dataframe = dataframe._append(self.code_df, ignore_index=True)
         output_directory = Path(self.output_filepath).parent
 
         if not output_directory.exists():
@@ -60,10 +59,15 @@ class CodeManager:
             pickle.dump(dataframe, file)
 
     def _extract_process_and_save_code(self):
-        extracted_code_blocks = (
-            self.directory_extractor.extract_code_blocks_from_files()
-        )
+        (
+            extracted_code_blocks,
+            outdated_checksums,
+        ) = self.directory_extractor.extract_code_blocks_from_files()
         processed_dataframe = self.code_processor.process(extracted_code_blocks)
 
-        if processed_dataframe is not None:
-            self._store_code_dataframe(processed_dataframe)
+        updated_df = pd.concat([self.code_df, processed_dataframe], ignore_index=True)
+
+        # Remove checksums of updated code
+        updated_df = updated_df[~updated_df["file_checksum"].isin(outdated_checksums)]
+
+        self._store_code_dataframe(updated_df)
