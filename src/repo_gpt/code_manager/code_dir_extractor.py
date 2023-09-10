@@ -62,7 +62,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         )
 
     def _map_filepath_to_checksum(self) -> Dict[str, str]:  # filepath : checksum
-        if self.code_df is None or self.code_df.empt:
+        if self.code_df is None or self.code_df.empty:
             return {}
         return (
             self.code_df.drop_duplicates(subset=["file_checksum"])[
