@@ -1,0 +1,5 @@
+[virtualenvs]
+in-project = true
+
+[installer]
+moddern-installation = false
