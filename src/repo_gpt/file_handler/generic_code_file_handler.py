@@ -71,6 +71,53 @@ class GenericCodeFileHandler(AbstractHandler):
                    """
         )
 
+    def summarize_file(self, filepath: Path) -> str:
+        # Use the `extract_code` method to parse the given file and get all code structures.
+        parsed_codes = self.extract_code(filepath)
+
+        summaries = []
+
+        for parsed_code in parsed_codes:
+            if parsed_code.code_type == CodeType.CLASS:
+                class_summary = f"Class: {parsed_code.name}"
+                if parsed_code.inputs:
+                    class_summary += (
+                        f"\n\tParent Classes: {', '.join(parsed_code.inputs)}"
+                    )
+                summaries.append(class_summary)
+
+                # Including the methods and their IO signatures within the class
+                for line in parsed_code.summary.split("\n"):
+                    if line.strip().startswith("method:"):
+                        summaries.append("\t" + line.strip())
+
+            elif parsed_code.code_type == CodeType.FUNCTION:
+                function_summary = f"Function: {parsed_code.name}"
+                if parsed_code.inputs:
+                    function_summary += (
+                        f"\n\tInput Parameters: {', '.join(parsed_code.inputs)}"
+                    )
+                if parsed_code.outputs:
+                    function_summary += (
+                        f"\n\tOutput Parameters: {', '.join(parsed_code.outputs)}"
+                    )
+                summaries.append(function_summary)
+
+            elif parsed_code.code_type == CodeType.METHOD:
+                # This section might not be necessary as methods are captured under the class summary.
+                method_summary = f"Method (within class): {parsed_code.name}"
+                if parsed_code.inputs:
+                    method_summary += (
+                        f"\n\tInput Parameters: {', '.join(parsed_code.inputs)}"
+                    )
+                if parsed_code.outputs:
+                    method_summary += (
+                        f"\n\tOutput Parameters: {', '.join(parsed_code.outputs)}"
+                    )
+                summaries.append(method_summary)
+
+        return "\n".join(summaries)
+
     """ VSCode Extension CodeLens """
 
     def extract_vscode_ext_codelens(
@@ -396,3 +443,10 @@ class ElixirFileHandler(GenericCodeFileHandler):
   (#match? @ignore "^(defmodule|defprotocol)$")) @definition.module
 """,
         )
+
+
+"""Code File Handler"""
+
+
+class GenericCodeFileHandler:
+    pass

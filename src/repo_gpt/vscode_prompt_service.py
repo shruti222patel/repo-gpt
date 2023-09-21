@@ -5,6 +5,7 @@ from typing import Union
 
 from repo_gpt.openai_service import OpenAIService
 from repo_gpt.prompt_service import PromptService
+from repo_gpt.search_service import SearchService
 
 
 class Status(Enum):
@@ -42,8 +43,14 @@ class VscodeMessage:
 
 
 class VscodePromptService(PromptService):
-    def __init__(self, openai_service: OpenAIService, language: str):
+    def __init__(
+        self,
+        openai_service: OpenAIService,
+        language: str,
+        search_service: SearchService = None,
+    ):
         super().__init__(openai_service, language)
+        self.search_service = search_service
 
     def refactor_code(
         self, input_code_file_path: str, additional_instructions: str = ""
@@ -52,3 +59,9 @@ class VscodePromptService(PromptService):
         with open(input_code_file_path, "r") as f:
             code = f.read()
         super().refactor_code(code, additional_instructions)
+
+    def query_code(self, question: str):
+        similar_code_df = self.search_service.semantic_search_similar_code(question)
+        code = "\n".join(similar_code_df["code"].tolist())
+
+        super().query_code(question, code)

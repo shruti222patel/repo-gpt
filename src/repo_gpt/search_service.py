@@ -4,12 +4,9 @@ from typing import Tuple
 
 import pandas as pd
 from rich.markdown import Markdown
-from tqdm import tqdm
 
-from .console import console, pretty_print_code
+from .console import console, pretty_print_code, verbose_print
 from .openai_service import OpenAIService
-
-tqdm.pandas()
 
 
 class SearchService:
@@ -39,7 +36,7 @@ class SearchService:
         print(matches)
 
     def semantic_search(self, code_query: str):
-        similar_code_df = self._semantic_search_similar_code(code_query)
+        similar_code_df = self.semantic_search_similar_code(code_query)
         pretty_print_code(similar_code_df, self.language)
         return similar_code_df
 
@@ -67,9 +64,9 @@ class SearchService:
 
         return function_matches, class_matches
 
-    def _semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
+    def semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
-        console.print("Searching for similar code...")
+        verbose_print("Searching for similar code...")
         self.df["similarities"] = self.df["code_embedding"].progress_apply(
             lambda x: x.dot(embedding)
         )
@@ -79,7 +76,7 @@ class SearchService:
         )
 
     def question_answer(self, question: str):
-        similar_code_df = self._semantic_search_similar_code(question)
+        similar_code_df = self.semantic_search_similar_code(question)
         pretty_print_code(similar_code_df, self.language)
 
         # TODO: add code to only send X amount of tokens to OpenAI

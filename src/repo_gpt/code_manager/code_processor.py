@@ -3,6 +3,7 @@ from typing import List
 import pandas as pd
 from tqdm import tqdm
 
+from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
 from ..openai_service import OpenAIService
 
@@ -10,17 +11,17 @@ tqdm.pandas()
 
 
 class CodeProcessor:
-    def __init__(self, code_root):
+    def __init__(self, code_root, openai_service: OpenAIService = None):
         # Todo: add code root
         self.code_root = code_root
-        self.openai_service = OpenAIService()
+        self.openai_service = openai_service if openai_service else OpenAIService()
 
     def process(self, code_blocks: List[ParsedCode]):
         if len(code_blocks) == 0:
-            print("No code blocks to process")
+            verbose_print("No code blocks to process")
             return None
         df = pd.DataFrame(code_blocks)
-        print(
+        verbose_print(
             f"Generating openai embeddings for {len(df)} code blocks. This may take a while because of rate limiting..."
         )
 

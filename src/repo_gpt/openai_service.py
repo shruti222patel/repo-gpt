@@ -66,7 +66,7 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
 
 
 class OpenAIService:
-    GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in markdown-formatted, bulleted lists."
+    GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in easy to read markdown."
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
 
     def __init__(self, openai_api_key: str | None = None):
@@ -117,13 +117,6 @@ class OpenAIService:
             if "content" in delta:
                 content = delta["content"]
                 print(content, end="")
-                # for char in content:
-                #     print(
-                #         char, end="", flush=True
-                #     )  # flush ensures the character is printed immediately
-                #     time.sleep(
-                #         0.01
-                #     )  # pause for 10 milliseconds (adjust as needed for desired typing speed)
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):

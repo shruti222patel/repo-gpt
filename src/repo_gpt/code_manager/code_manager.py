@@ -5,17 +5,25 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
+from ..console import verbose_print
+from ..openai_service import OpenAIService
 from .code_dir_extractor import CodeDirectoryExtractor
 from .code_processor import CodeProcessor
 
-tqdm.pandas()
-
 
 class CodeManager:
-    def __init__(self, output_filepath: Path, root_directory: Path = None):
+    def __init__(
+        self,
+        output_filepath: Path,
+        root_directory: Path = None,
+        openai_service: OpenAIService = None,
+    ):
         self.root_directory = root_directory
         self.output_filepath = output_filepath
-        self.code_processor = CodeProcessor(self.root_directory)
+        self.openai_service = (
+            openai_service if openai_service is not None else OpenAIService()
+        )
+        self.code_processor = CodeProcessor(self.root_directory, openai_service)
 
         self.code_df = self.load_code_dataframe()
         self.directory_extractor = CodeDirectoryExtractor(
@@ -45,7 +53,7 @@ class CodeManager:
     def setup(self):
         self._extract_process_and_save_code()
 
-        print("All done! ✨ 🦄 ✨")
+        verbose_print("All done! ✨ 🦄 ✨")
 
     def _store_code_dataframe(self, dataframe):
         output_directory = Path(self.output_filepath).parent

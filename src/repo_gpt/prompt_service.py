@@ -33,7 +33,7 @@ class PromptService:
             if additional_instructions
             else ""
         )
-        response = self.openai_service.query_stream(
+        self.openai_service.query_stream(
             f"""Please refactor the following {self.language} function.{addtion_instruction_query}
 
 ```{self.language}
@@ -46,8 +46,15 @@ When you edit or add code, you respect and use existing conventions, libraries, 
 ```""",
         )
 
-        # refactored_code = self._extract_code(response)
-        # return refactored_code
+    def query_code(self, question: str, code: str = ""):
+        self.openai_service.query_stream(
+            f"""Use the code below to answer the subsequent question. If the answer cannot be found, write "I don't know."
+```
+{code}
+```
+Question: {question}
+Output the answer in well organized markdown."""
+        )
 
     def _extract_code(self, response: str):
         split = response.split("```{self.language}")
