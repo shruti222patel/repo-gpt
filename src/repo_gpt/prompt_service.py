@@ -2,7 +2,7 @@ from repo_gpt.openai_service import OpenAIService
 from repo_gpt.utils import Singleton
 
 
-class PromptService(Singleton):
+class PromptService(metaclass=Singleton):
     def __init__(self, openai_service: OpenAIService, language: str):
         self.language = language
         self.openai_service = openai_service
