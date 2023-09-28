@@ -1,3 +1,4 @@
+import logging
 import os
 import pickle
 from pathlib import Path
@@ -9,6 +10,8 @@ from ..console import verbose_print
 from ..openai_service import OpenAIService
 from .code_dir_extractor import CodeDirectoryExtractor
 from .code_processor import CodeProcessor
+
+logger = logging.getLogger(__name__)
 
 
 class CodeManager:
@@ -53,7 +56,7 @@ class CodeManager:
     def setup(self):
         self._extract_process_and_save_code()
 
-        verbose_print("All done! ✨ 🦄 ✨")
+        logger.verbose_info("All done! ✨ 🦄 ✨")
 
     def _store_code_dataframe(self, dataframe):
         output_directory = Path(self.output_filepath).parent

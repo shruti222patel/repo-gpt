@@ -4,6 +4,9 @@ from pathlib import Path
 
 import configargparse
 
+from repo_gpt import utils
+from repo_gpt.logging_config import VERBOSE_INFO, configure_logging
+
 from .code_manager.code_manager import CodeManager
 from .openai_service import OpenAIService
 from .search_service import SearchService
@@ -36,11 +39,12 @@ def main():
         help="Package/library GPT should use to write tests (e.g. pytest, unittest, etc.)",
     )
 
+    # For some reason no -v returns 2, -v returns 1, -vv returns 3, -vvv returns 5
     parser.add_argument(
-        "-v",
         "--verbose",
+        "-v",
         action="count",
-        default=1,
+        default=0,
         help="Increase verbosity level (e.g., -v, -vv, -vvv)",
     )
 
@@ -110,6 +114,8 @@ def main():
         if args.command not in ["setup", "explain"]
         else None
     )
+    if int(args.verbose) >= 1:
+        configure_logging(VERBOSE_INFO)
 
     if args.command == "setup":
         code_root_path = Path(args.code_root_path)

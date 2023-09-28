@@ -1,15 +1,46 @@
+import json
+import logging
 import pickle
-from pathlib import Path
+from enum import Enum
+from pathlib import Path, PosixPath
 from typing import Tuple
 
 import pandas as pd
+import tqdm
 from rich.markdown import Markdown
 
 from .console import console, pretty_print_code, verbose_print
+from .file_handler.abstract_handler import ParsedCode
 from .openai_service import OpenAIService
+from .utils import Singleton
+
+logger = logging.getLogger(__name__)
 
 
-class SearchService:
+class CustomCodeEmbeddingDFEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Enum):
+            return obj.value
+        if isinstance(obj, PosixPath):
+            return str(obj)
+        return super(CustomCodeEmbeddingDFEncoder, self).default(obj)
+
+
+def convert_search_df_to_json(df: pd.DataFrame):
+    selected_columns = [
+        "name",
+        "code",
+        "code_type",
+        "summary",
+        "inputs",
+        "outputs",
+        "filepath",
+    ]
+    df_dict = df[selected_columns].to_dict(orient="records")
+    return json.dumps(df_dict, cls=CustomCodeEmbeddingDFEncoder)
+
+
+class SearchService(metaclass=Singleton):
     def __init__(
         self,
         openai_service: OpenAIService,
@@ -66,10 +97,17 @@ class SearchService:
 
     def semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
-        verbose_print("Searching for similar code...")
-        self.df["similarities"] = self.df["code_embedding"].progress_apply(
-            lambda x: x.dot(embedding)
-        )
+        logger.verbose_info("Searching for similar code...")
+
+        if logger.getEffectiveLevel() < logging.INFO:
+            tqdm.pandas()
+            self.df["similarities"] = self.df["code_embedding"].progress_apply(
+                lambda x: x.dot(embedding)
+            )
+        else:
+            self.df["similarities"] = self.df["code_embedding"].apply(
+                lambda x: x.dot(embedding)
+            )
 
         return self.df.sort_values("similarities", ascending=False).head(
             matches_to_return

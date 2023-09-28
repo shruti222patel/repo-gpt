@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Set
@@ -11,6 +12,8 @@ from tqdm import tqdm
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
 from .abstract_extractor import AbstractCodeExtractor
+
+logger = logging.getLogger(__name__)
 
 
 class CodeDirectoryExtractor(AbstractCodeExtractor):
@@ -108,11 +111,13 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
             current_file_checksum = self.generate_md5_checksum(code_file_path)
             existing_filepath_checksum = filepath_to_checksum.get(code_file_path, None)
             if existing_filepath_checksum == current_file_checksum:
-                verbose_print(f"🟡 Skipping -- file unmodified {code_file_path}")
+                logger.verbose_info(f"🟡 Skipping -- file unmodified {code_file_path}")
                 continue
 
             if code_file_path.suffix not in parsable_extensions:
-                verbose_print(f"🟡 Skipping -- no file parser for {code_file_path}")
+                logger.verbose_info(
+                    f"🟡 Skipping -- no file parser for {code_file_path}"
+                )
                 continue
 
             try:
@@ -122,16 +127,16 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
                     code_file_path, current_file_checksum
                 )
             except Exception as e:
-                verbose_print(
+                logger.verbose_info(
                     f"🔴 Skipping -- error extracting code {code_file_path}: {str(e)}"
                 )
                 continue
             if not extracted_file_blocks:
-                verbose_print(
+                logger.verbose_info(
                     f"🟡 Skipping -- no functions or classes found {code_file_path}"
                 )
             else:
-                verbose_print(
+                logger.verbose_info(
                     f"🟢 Extracted {len(extracted_file_blocks)} functions from {code_file_path}"
                 )
             extracted_blocks.extend(extracted_file_blocks)

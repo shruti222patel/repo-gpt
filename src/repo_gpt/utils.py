@@ -1,24 +1,8 @@
-import logging
-import warnings
+class Singleton(type):
+    _instances = {}
 
-from urllib3.exceptions import InsecureRequestWarning
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__call__(*args, **kwargs)
 
-# Suppress only the single warning from urllib3
-warnings.filterwarnings("ignore", category=InsecureRequestWarning)
-
-# Create a logger
-logger = logging.getLogger("repo_gpt")
-logger.setLevel(logging.INFO)
-
-# Create a console handler
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-
-# Create a formatter
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-# Attach the formatter to the handler
-handler.setFormatter(formatter)
-
-# Attach the handler to the logger
-logger.addHandler(handler)
+        return cls._instances[cls]

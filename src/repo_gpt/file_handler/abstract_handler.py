@@ -7,7 +7,7 @@ from typing import List, Tuple, TypeVar, Union
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
 
-class CodeType(Enum):
+class CodeType(str, Enum):
     FUNCTION = "function"
     CLASS = "class"
     METHOD = "method"

@@ -1,7 +1,8 @@
 from repo_gpt.openai_service import OpenAIService
+from repo_gpt.utils import Singleton
 
 
-class PromptService:
+class PromptService(Singleton):
     def __init__(self, openai_service: OpenAIService, language: str):
         self.language = language
         self.openai_service = openai_service
@@ -28,13 +29,13 @@ class PromptService:
             return e.message
 
     def refactor_code(self, code: str, additional_instructions: str):
-        addtion_instruction_query = (
+        addition_instruction_query = (
             f" Additional instructions: {additional_instructions}"
             if additional_instructions
             else ""
         )
         self.openai_service.query_stream(
-            f"""Please refactor the following {self.language} function.{addtion_instruction_query}
+            f"""Please refactor the following {self.language} function.{addition_instruction_query}
 
 ```{self.language}
 {code}
