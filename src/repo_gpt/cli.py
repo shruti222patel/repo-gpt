@@ -1,6 +1,7 @@
 #!./venv/bin/python
 import os
 from pathlib import Path
+from typing import Union
 
 import configargparse
 
@@ -124,12 +125,18 @@ def main():
         manager = CodeManager(pickle_path, code_root_path)
         manager.setup()
     elif args.command == "search":
+        update_code_embedding_file(args.pickle_path)
         # search_service.simple_search(args.query) # simple search
         search_service.semantic_search(args.query)  # semantic search
     elif args.command == "query":
+        update_code_embedding_file(args.pickle_path)
         repo_qna = RepoQnA(args.question, args.code_root_path)
         repo_qna.initiate_chat()
-    elif args.command == "analyze":
+    elif args.command == "explain":
+        update_code_embedding_file(args.pickle_path)
+        search_service.explain(args.question)
+    elif args.command == "analyze":  # TODO change to explain function
+        update_code_embedding_file(args.pickle_path)
         search_service.analyze_file(args.file_path)
     elif args.command == "explain":
         search_service = SearchService(openai_service, language=args.language)
@@ -148,6 +155,32 @@ def main():
         parser.print_help()
 
 
+def update_code_embedding_file(
+    search_service, code_embedding_file_path, function_name=None
+) -> Union[None, str]:
+    manager = CodeManager(code_embedding_file_path)
+    if function_name:
+        function_to_test_df, class_to_test_df = search_service.find_function_match(
+            function_name
+        )
+
+        if function_to_test_df.empty:
+            print(f"Function {function_name} not found.")
+            return
+
+        checksum_filepath_dict = {
+            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
+                "filepath"
+            ]
+        }
+        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
+
+        return function_to_test_df.iloc[0]["code"]
+    else:
+        manager.setup()
+    search_service.refresh()
+
+
 def add_tests(
     search_service,
     code_manager,
@@ -155,53 +188,25 @@ def add_tests(
     test_save_file_path,
     testing_package,
 ):
+    # TODO: add language & test framework from config file
     # Check file path isn't a directory
     if os.path.isdir(test_save_file_path):
         print(
             f"Error: {test_save_file_path} is a directory. Please specify a file path."
         )
         return
-    # Find the function via the search service
-    function_to_test_df, class_to_test_df = search_service.find_function_match(
-        function_name
-    )
 
-    if function_to_test_df.empty:
-        print(f"Function {function_name} not found.")
-        return
-
-    # Get the latest version of the function
-    checksum_filepath_dict = {
-        function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
-            "filepath"
-        ]
-    }
-    code_manager.parse_code_and_save_embeddings(checksum_filepath_dict)
-
-    search_service.refresh_df()
-    # Find the function again after refreshing the code & embeddings
-    function_to_test_df, class_to_test_df = search_service.find_function_match(
-        function_name
-    )
-
-    if function_to_test_df.empty:
-        print(f"Function {function_name} not found.")
-        return
+    code = update_code_embedding_file(search_service, code_manager, function_name)
 
     # Save gpt history
     # Ask gpt to explain the function
     test_generator = TestGenerator(
-        function_to_test_df.iloc[0]["code"],
+        code,
         language="python",
         unit_test_package=testing_package,
         debug=True,
     )
     unit_tests = test_generator.unit_tests_from_function()
-    # unit_tests = openai_service.unit_tests_from_function(
-    #     function_to_test_df.iloc[0]["code"],
-    #     unit_test_package=testing_package,
-    #     print_text=True,
-    # )  # TODO: add language & test framework from config file
 
     print(f"Writing generated unit_tests to {test_save_file_path}...")
     # Save code to file
