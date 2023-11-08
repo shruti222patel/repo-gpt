@@ -1,8 +1,8 @@
 # imports
 import pytest
 
-from repo_gpt.code_manager.code_dir_extractor import CodeDirExtractor
-from repo_gpt.file_handler.abstract_handler import ParsedCode
+from repogpt import ParsedCode
+from repogpt.code_manager.code_dir_extractor import CodeDirExtractor
 
 
 # unit tests

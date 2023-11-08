@@ -60,33 +60,17 @@ After setup, you can perform various tasks:
   repo-gpt query <text/question>
   ```
 
-- **File Analysis**: Analyze a specific file:
-
-  ```shell
-  repo-gpt analyze <file_path>
-  ```
-
 - **Help**: Access the help guide:
 
   ```shell
   repo-gpt help
   ```
-
-- **Generate tests**: Generate tests for a function:
-Note: this assumes the function name is unique in the codebase, otherwise, it will pick the first function it finds with that name.
-
-   ```shell
-   repo-gpt add-test <unique function name> --test_save_file_path <absolute filepath to add tests to> --testing_package <testing package to use e.g. pytest>
-   ```
-
 Example:
 
 ```bash
 repo-gpt setup --root_path ./my_project
 repo-gpt search "extract handler"
 repo-gpt query "What does the function `calculate_sum` do?"
-repo-gpt analyze ./my_project/main.py
-repo-gpt add-test function_name --test_save_file_path $PWD/test.py --testing_package pytest
 ```
 
 ## Contributing
@@ -137,14 +121,27 @@ Here are the steps to set up your development environment:
    ```
 
 ### Debugging
-
+#### Code Embeddings
 You can view the output of the `code_embeddings.pkl` using the following command:
 
 ```shell
 poetry shell
 python
 import pandas as pd
-pd.read_pickle('./.repo_gpt/code_embeddings.pkl', compression='infer')
+pd.read_pickle('./.repogpt/code_embeddings.pkl', compression='infer')
+```
+#### Docker
+```shell
+docker build -t repogpt . && docker run --rm -p 8000:8000 -v /Users/shrutipatel/projects/work/repo-gpt/.repogpt:/app/.repogpt -v /Users/shrutipatel/projects/work/repo-gpt:/app/code_root repogpt:latest
+```
+
+```shell
+curl -H "OpenAI-API-Key: <you key>" http://localhost:8000/search/What%20is%20the%20test%20framework%20in%20this%20repo%3F
+curl -H "OpenAI-API-Key: <you key>" http://localhost:8000/query/What%20is%20the%20test%20framework%20in%20this%20repo%3F
+```
+#### API
+```shell
+uvicorn repogpt.routes:app --host 0.0.0.0 --port 8000
 ```
 
 #### Interpreter
@@ -153,6 +150,13 @@ poetry shell
 ipython
 %load_ext autoreload
 %autoreload 2
+```
+
+## Push Image to Docker Hub
+```shell
+docker build -t repogpt .
+docker tag repogpt:latest shruti222patel/repogpt:latest
+docker push shruti222patel/repogpt:latest
 ```
 
 ## Roadmap
@@ -164,10 +168,10 @@ Here are the improvements we are currently considering:
 - [X] Add CI/CD
 - [X] Prettify output
 - [ ] Add readme section about how folks can contribute parsers for their own languages
-- [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
+- [X] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
 - [X] Add SQL file handler
 - [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
 - [X] Create VSCode extension
-- [ ] Ensure files can be added & deleted and the indexing picks up on the changes.
+- [X] Ensure files can be added & deleted and the indexing picks up on the changes.
 - [ ] Add .repogptignore file to config & use it in the indexing command
 - [ ] Use pygments library for prettier code formatting
