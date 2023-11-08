@@ -151,23 +151,23 @@ def main():
         search_service = SearchService(openai_service, language=args.language)
         _, additional_args = explain_code.parse_known_args()
         return search_service.explain(additional_args[0])
-    elif args.command == "add-test":
-        update_code_embedding_file(
-            search_service, args.code_root_path, args.pickle_path
-        )
-        code_manager = CodeManager(Path(args.pickle_path), Path(args.code_root_path))
-        # Look for the function name in the embedding file
-        _, additional_args = add_test.parse_known_args()
-        # print(additional_args)
-
-        print("Adding tests is temporarily disabled due to a bug in the cli parser.")
-        # add_tests(
-        #     search_service,
-        #     code_manager,
-        #     args.function_name,
-        #     args.test_save_file_path,
-        #     args.testing_package,
-        # )
+    # elif args.command == "add-test":
+    #     update_code_embedding_file(
+    #         search_service, args.code_root_path, args.pickle_path
+    #     )
+    #     code_manager = CodeManager(Path(args.pickle_path), Path(args.code_root_path))
+    #     # Look for the function name in the embedding file
+    #     _, additional_args = add_test.parse_known_args()
+    #     # print(additional_args)
+    #
+    #     print("Adding tests is temporarily disabled due to a bug in the cli parser.")
+    #     add_tests(
+    #         search_service,
+    #         code_manager,
+    #         args.function_name,
+    #         args.test_save_file_path,
+    #         args.testing_package,
+    #     )
     else:
         parser.print_help()
 
