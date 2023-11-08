@@ -106,16 +106,13 @@ def main():
     parser_help = subparsers.add_parser("help", help="Show this help message")
     parser_help.set_defaults(func=print_help)
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     # Services
     openai_service = OpenAIService()
 
-    search_service = (
-        SearchService(openai_service, args.pickle_path)
-        if args.command not in ["setup", "explain"]
-        else None
-    )
+    search_service = SearchService(openai_service, args.pickle_path)
+
     if int(args.verbose) >= 1:
         configure_logging(VERBOSE_INFO)
 
@@ -125,60 +122,62 @@ def main():
         manager = CodeManager(pickle_path, code_root_path)
         manager.setup()
     elif args.command == "search":
-        update_code_embedding_file(args.pickle_path)
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
+        )
+        _, additional_args = parser_search.parse_known_args()
         # search_service.simple_search(args.query) # simple search
-        search_service.semantic_search(args.query)  # semantic search
+        search_service.semantic_search(additional_args[0])  # semantic search
     elif args.command == "query":
-        update_code_embedding_file(args.pickle_path)
-        repo_qna = RepoQnA(args.question, args.code_root_path)
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
+        )
+        _, additional_args = parser_query.parse_known_args()
+        repo_qna = RepoQnA(additional_args[0], args.code_root_path, args.pickle_path)
         repo_qna.initiate_chat()
     elif args.command == "explain":
-        update_code_embedding_file(args.pickle_path)
-        search_service.explain(args.question)
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
+        )
+        _, additional_args = explain_code.parse_known_args()
+        search_service.explain(additional_args[0])
     elif args.command == "analyze":  # TODO change to explain function
-        update_code_embedding_file(args.pickle_path)
-        search_service.analyze_file(args.file_path)
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
+        )
+        _, additional_args = analyze_file.parse_known_args()
+        search_service.analyze_file(additional_args[0])
     elif args.command == "explain":
         search_service = SearchService(openai_service, language=args.language)
-        return search_service.explain(args.code)
+        _, additional_args = explain_code.parse_known_args()
+        return search_service.explain(additional_args[0])
     elif args.command == "add-test":
-        code_manager = CodeManager(args.pickle_path)
-        # Look for the function name in the embedding file
-        add_tests(
-            search_service,
-            code_manager,
-            args.function_name,
-            args.test_save_file_path,
-            args.testing_package,
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
         )
+        code_manager = CodeManager(Path(args.pickle_path), Path(args.code_root_path))
+        # Look for the function name in the embedding file
+        _, additional_args = add_test.parse_known_args()
+        # print(additional_args)
+
+        print("Adding tests is temporarily disabled due to a bug in the cli parser.")
+        # add_tests(
+        #     search_service,
+        #     code_manager,
+        #     args.function_name,
+        #     args.test_save_file_path,
+        #     args.testing_package,
+        # )
     else:
         parser.print_help()
 
 
 def update_code_embedding_file(
-    search_service, code_embedding_file_path, function_name=None
+    search_service, root_file_path: str, code_embedding_file_path: str
 ) -> Union[None, str]:
-    manager = CodeManager(code_embedding_file_path)
-    if function_name:
-        function_to_test_df, class_to_test_df = search_service.find_function_match(
-            function_name
-        )
-
-        if function_to_test_df.empty:
-            print(f"Function {function_name} not found.")
-            return
-
-        checksum_filepath_dict = {
-            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
-                "filepath"
-            ]
-        }
-        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
-
-        return function_to_test_df.iloc[0]["code"]
-    else:
-        manager.setup()
-    search_service.refresh()
+    manager = CodeManager(Path(code_embedding_file_path), Path(root_file_path))
+    manager.setup()
+    search_service.refresh_df()
 
 
 def add_tests(
@@ -196,6 +195,7 @@ def add_tests(
         )
         return
 
+    # TODO: check this. it seems wrong
     code = update_code_embedding_file(search_service, code_manager, function_name)
 
     # Save gpt history
