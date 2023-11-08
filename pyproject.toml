@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-gpt"
-version = "0.1.2"
+version = "0.1.6"
 description = "Search your code repository using GPT3.5 or GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
@@ -21,25 +21,45 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.9,<3.12"
 pandas = "^2.0.2"
 numpy = "^1.24.3"
-halo = "^0.0.31"
 tqdm = "^4.65.0"
 pathspec = "^0.11.1"
 openai = "^0.27.8"
 rich = "^13.4.1"
 tenacity = "^8.2.2"
-sqlglot = "^16.4.0"
 tree-sitter-languages = "^1.7.0"
-pygments = "^2.16.1"
 tiktoken = "^0.4.0"
+configargparse = "^1.7"
+toml = "^0.10.2"
+pyautogen = "^0.1.14"
+code2flow = "^2.5.1"
+networkx = "^3.1"
+pydeps = "^1.12.17"
+pylint = "^3.0.1"
+python-levenshtein = "^0.23.0"
+colored = "^2.2.3"
+fuzzywuzzy = "^0.18.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
 pre-commit = "^3.3.2"
 exceptiongroup = { version="^1.1.1", markers="python_version <= '3.10'" }
-jupyterlab = "^4.0.4"
+jupyterlab = "^4.0.8"
+bump2version = "^1.0.1"
+ipython = "^8.14.0"
+pygraphviz = "^1.11" # Moved here temporarily because so pygraphviz doesn't need to be install on ci/cd.
+
+#[tool.poetry.dependencies.pygraphviz]
+## This marker ensures that the build options are only applied on macOS
+#markers = "sys_platform == 'darwin'"
+#build-options = [
+#    "--global-option=build_ext",
+#    "--global-option=-I/usr/local/opt/graphviz/include/",
+#    "--global-option=-L/usr/local/opt/graphviz/lib/"
+#]
+modal = "^0.55.4043"
 
 [tool.poetry.scripts]
 repo-gpt = "repo_gpt.cli:main"
@@ -50,3 +70,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 python_paths = ["src"]
+
+[tool.repo_gpt]
+code_root_path = "./src/repo_gpt"

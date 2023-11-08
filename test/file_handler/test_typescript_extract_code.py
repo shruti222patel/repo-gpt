@@ -10,6 +10,10 @@ SAMPLE_TS_FUNCTION_INPUT_TEXT = """
 function helloWorld(): string {
     return "Hello, world!";
 }
+
+export async function helloWorld(): string {
+    return "Hello, world!";
+}
 """
 
 SAMPLE_TS_CLASS_INPUT_TEXT = """
@@ -25,9 +29,19 @@ class TestClass extends BaseClass {
 # Define expected parsed code for TypeScript
 EXPECTED_TS_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="helloWorld",
+        function_name="helloWorld",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='function helloWorld(): string {\n    return "Hello, world!";\n}',
+        inputs=None,
+        summary=None,
+        outputs=("string",),
+    ),
+    ParsedCode(
+        function_name="helloWorld",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
+        code='async function helloWorld(): string {\n    return "Hello, world!";\n}',
         inputs=None,
         summary=None,
         outputs=("string",),
@@ -36,7 +50,8 @@ EXPECTED_TS_FUNCTION_PARSED_CODE = [
 
 EXPECTED_TS_CLASS_PARSED_CODE = [
     ParsedCode(
-        name="TestClass",
+        class_name="TestClass",
+        function_name=None,
         code_type=CodeType.CLASS,
         summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: testMethod\n        input parameters: None\n        output parameters: ('void',)\n        code: ...\n""",
         inputs=("BaseClass",),
@@ -44,8 +59,9 @@ EXPECTED_TS_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="testMethod",
-        code_type=CodeType.METHOD,
+        function_name="testMethod",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
         code="testMethod(): void {\n        // This is a test method.\n        return;\n    }",
         inputs=None,
         summary=None,
@@ -70,24 +86,22 @@ def test_ts_normal_operation(tmp_path, input_text, expected_output):
     assert isinstance(parsed_code, list)
     assert all(isinstance(code, ParsedCode) for code in parsed_code)
     assert len(parsed_code) == len(expected_output)
-    parsed_code.sort(key=lambda x: x.name)
-    expected_output.sort(key=lambda x: x.name)
+    parsed_code.sort()
+    expected_output.sort()
     assert parsed_code == expected_output
 
 
 def test_no_function_in_file(tmp_path):
     # Test TypeScript file with no functions or classes
     p = tmp_path / "no_function_class_ts_file.ts"
-    p.write_text(
-        """
-    let x = 10;
-    let y = 20;
-    let z = x + y;
-    """
-    )
+    code = """let x = 10;
+let y = 20;
+let z = x + y;"""
+    p.write_text(code)
     parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code == code.strip()
 
 
 def test_edge_cases(tmp_path):
@@ -99,10 +113,15 @@ def test_edge_cases(tmp_path):
     assert len(parsed_code) == 0
 
     # Test non-TypeScript file
-    p = tmp_path / "non_ts_file.txt"
-    p.write_text("This is a text file, not a TypeScript file.")
+    p = (
+        tmp_path / "non_ts_file.txt"
+    )  # This fucntion doesn't check file types only parses the text / code
+    text = "This is a text file, not a TypeScript file."
+    p.write_text(text)
     parsed_code = handler.extract_code(p)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code == text
+    assert parsed_code[0].code_type == CodeType.GLOBAL
 
     # Test non-existent file
     p = tmp_path / "non_existent_file.ts"

@@ -7,10 +7,17 @@ handler = PythonFileHandler()
 
 # Define input text
 SAMPLE_FUNCTION_INPUT_TEXT = """
+foo = "bar"
+
+def hello_world() -> str:
+    return "Hello, world!"
+
+@decorator
 def hello_world() -> str:
     return "Hello, world!"
 """
 SAMPLE_CLASS_INPUT_TEXT = """
+@decorator
 class TestClass(BaseClass):
     \"""This is a test class. \"""
     def test_method(self):
@@ -20,18 +27,38 @@ class TestClass(BaseClass):
 # Define expected parsed code
 EXPECTED_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="hello_world",
+        function_name="hello_world",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='def hello_world() -> str:\n    return "Hello, world!"',
         inputs=None,
         summary=None,
         outputs=("str",),
     ),
+    ParsedCode(
+        function_name="hello_world",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
+        code='def hello_world() -> str:\n    return "Hello, world!"',
+        inputs=None,
+        summary=None,
+        outputs=("str",),
+    ),
+    ParsedCode(
+        function_name=None,
+        class_name=None,
+        code_type=CodeType.GLOBAL,
+        code='foo = "bar"\n\n\n@decorator\n',
+        inputs=None,
+        summary=None,
+        outputs=None,
+    ),
 ]
 
 EXPECTED_CLASS_PARSED_CODE = [
     ParsedCode(
-        name="TestClass",
+        class_name="TestClass",
+        function_name=None,
         code_type=CodeType.CLASS,
         summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: test_method\n        input parameters: ('self',)\n        output parameters: None\n        code: ...\n""",
         inputs=("BaseClass",),
@@ -39,10 +66,20 @@ EXPECTED_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="test_method",
-        code_type=CodeType.METHOD,
+        function_name="test_method",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
         code="""def test_method(self):\n        \"""This is a test method. \"""\n        pass""",
         inputs=("self",),
+        summary=None,
+        outputs=None,
+    ),
+    ParsedCode(
+        function_name=None,
+        class_name=None,
+        code_type=CodeType.GLOBAL,
+        code="@decorator\n",
+        inputs=None,
         summary=None,
         outputs=None,
     ),
@@ -73,16 +110,16 @@ def test_normal_operation(tmp_path, input_text, expected_output):
 def test_no_function_in_file(tmp_path):
     # Test Python file with no functions or classes
     p = tmp_path / "no_function_class_python_file.py"
-    p.write_text(
-        """
-    x = 10
-    y = 20
-    z = x + y
+    code = """x = 10
+y = 20
+z = x + y
     """
-    )
+    p.write_text(code)
     parsed_code = handler.extract_code(p)
     assert isinstance(parsed_code, list)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert code.strip() in parsed_code[0].code
 
 
 def test_edge_cases(tmp_path):
@@ -94,10 +131,15 @@ def test_edge_cases(tmp_path):
     assert len(parsed_code) == 0
 
     # Test non-Python file
-    p = tmp_path / "non_python_file.txt"
-    p.write_text("This is a text file, not a Python file.")
+    p = (
+        tmp_path / "non_python_file.txt"
+    )  # This function doesn't check if the file or function is valid Python
+    text = "This is a text file, not a Python file."
+    p.write_text(text)
     parsed_code = handler.extract_code(p)
-    assert len(parsed_code) == 0
+    assert len(parsed_code) == 1
+    assert parsed_code[0].code_type == CodeType.GLOBAL
+    assert parsed_code[0].code == text
 
     # Test non-existent file
     p = tmp_path / "non_existent_file.py"

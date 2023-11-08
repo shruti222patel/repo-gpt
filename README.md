@@ -16,6 +16,7 @@ Repo-GPT is a Python CLI tool designed to utilize the power of OpenAI's GPT-3 mo
 Repo-GPT can be installed via [pip](https://pip.pypa.io/en/stable/):
 
 ```bash
+brew install graphviz
 pip install repo-gpt
 ```
 
@@ -93,6 +94,16 @@ repo-gpt add-test function_name --test_save_file_path $PWD/test.py --testing_pac
 We welcome your contributions! Before starting, please make sure to install Python `3.11` and the latest version of [poetry](https://python-poetry.org/docs/#installing-with-pipx). [Pyenv](https://github.com/pyenv/pyenv) is a convenient tool to manage multiple Python versions on your computer.
 
 Here are the steps to set up your development environment:
+0. Install global dependencies:
+
+   ```shell
+   nvm use --lts
+
+   brew install graphviz
+   export CFLAGS="-I $(brew --prefix graphviz)/include"
+   export LDFLAGS="-L $(brew --prefix graphviz)/lib"
+   pip install poetry
+   ```
 
 1. Export your OpenAI key to your environment variables:
 
@@ -104,6 +115,7 @@ Here are the steps to set up your development environment:
 
    ```shell
    poetry install --no-root
+   jupyter lab build
    ```
 
 3. Install pre-commit hooks:
@@ -129,7 +141,18 @@ Here are the steps to set up your development environment:
 You can view the output of the `code_embeddings.pkl` using the following command:
 
 ```shell
+poetry shell
+python
+import pandas as pd
 pd.read_pickle('./.repo_gpt/code_embeddings.pkl', compression='infer')
+```
+
+#### Interpreter
+```shell
+poetry shell
+ipython
+%load_ext autoreload
+%autoreload 2
 ```
 
 ## Roadmap
@@ -144,4 +167,7 @@ Here are the improvements we are currently considering:
 - [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
 - [X] Add SQL file handler
 - [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
-- [ ] Create VSCode extension
+- [X] Create VSCode extension
+- [ ] Ensure files can be added & deleted and the indexing picks up on the changes.
+- [ ] Add .repogptignore file to config & use it in the indexing command
+- [ ] Use pygments library for prettier code formatting
