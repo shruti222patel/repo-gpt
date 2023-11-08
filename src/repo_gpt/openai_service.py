@@ -1,4 +1,6 @@
 # Set your OpenAI API key as an environment variable
+import json
+import logging
 import os
 
 import numpy as np
@@ -10,7 +12,7 @@ from tenacity import (  # for exponential backoff
     wait_random_exponential,
 )
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
+from repo_gpt.utils import Singleton
 
 MAX_RETRIES = 3
 GPT_MODEL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
@@ -19,13 +21,15 @@ TEMPERATURE = (
     0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
 )
 
+logger = logging.getLogger(__name__)
+
 
 def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
     """Return the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        print("Warning: model not found. Using cl100k_base encoding.")
+        logger.warn("Warning: model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
     if model in {
         "gpt-3.5-turbo-0613",
@@ -43,12 +47,12 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
         )
         tokens_per_name = -1  # if there's a name, the role is omitted
     elif "gpt-3.5-turbo" in model:
-        print(
+        logger.warn(
             "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613."
         )
         return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
     elif "gpt-4" in model:
-        print(
+        logger.warn(
             "Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613."
         )
         return num_tokens_from_messages(messages, model="gpt-4-0613")
@@ -60,16 +64,48 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
     for message in messages:
         num_tokens += tokens_per_message
         for key, value in message.items():
-            num_tokens += len(encoding.encode(value))
+            num_tokens += len(encoding.encode(json.dumps(value)))
             if key == "name":
                 num_tokens += tokens_per_name
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
     return num_tokens
 
 
-class OpenAIService:
-    GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in markdown-formatted, bulleted lists."
+def tokens_from_string(string, model="gpt-3.5-turbo"):
+    """Return the number of tokens used by a string."""
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        logger.warn("Warning: model not found. Using cl100k_base encoding.")
+        encoding = tiktoken.get_encoding("cl100k_base")
+
+    tokens = encoding.encode(string)
+
+    return tokens
+
+
+def num_tokens_from_string(prompt, model="gpt-3.5-turbo"):
+    """Return the number of tokens used by a string."""
+    return len(tokens_from_string(prompt, model=model))
+
+
+def handle_after_retry(retry_state):
+    if retry_state.attempt_number < 6:
+        print(f"Attempt {retry_state.attempt_number} failed. Retrying...")
+        pass
+    else:
+        # Log or print if final attempt also fails
+        print(f"Final attempt failed after {retry_state.attempt_number} retries.")
+
+
+class OpenAIService(metaclass=Singleton):
+    GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in easy to read markdown."
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
+
+    def __init__(self, openai_api_key: str | None = None):
+        openai.api_key = (
+            openai_api_key if openai_api_key else os.environ["OPENAI_API_KEY"]
+        )
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_answer(
@@ -94,9 +130,13 @@ class OpenAIService:
         )
         return response.choices[0]["message"]["content"]
 
-    @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
-    def query(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
-        response = openai.ChatCompletion.create(
+    @retry(
+        wait=wait_random_exponential(min=0.2, max=60),
+        stop=stop_after_attempt(6),
+        after=lambda retry_state: handle_after_retry(retry_state),
+    )
+    def query_stream(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
+        api_response = openai.ChatCompletion.create(
             messages=[
                 {
                     "role": "system",
@@ -106,12 +146,24 @@ class OpenAIService:
             ],
             model=GPT_MODEL,
             temperature=TEMPERATURE,
+            stream=True,
         )
-        return response.choices[0]["message"]["content"]
+
+        for chunk in api_response:
+            delta = chunk["choices"][0]["delta"]
+            if "content" in delta:
+                content = delta["content"]
+                print(content, end="")
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):
-        response = openai.Embedding.create(input=[text], model=EMBEDDING_MODEL)
+        try:
+            response = openai.Embedding.create(input=[text], model=EMBEDDING_MODEL)
+        except openai.error.OpenAIError as e:
+            # print(f"OpenAIError: {e}")
+            # print(f"Input: {text}")
+            # print(f"Response: {response}")
+            raise e
 
         if (
             "data" not in response

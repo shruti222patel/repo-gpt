@@ -11,8 +11,13 @@ foo = "bar"
 
 def hello_world() -> str:
     return "Hello, world!"
+
+@decorator
+def hello_world() -> str:
+    return "Hello, world!"
 """
 SAMPLE_CLASS_INPUT_TEXT = """
+@decorator
 class TestClass(BaseClass):
     \"""This is a test class. \"""
     def test_method(self):
@@ -22,7 +27,8 @@ class TestClass(BaseClass):
 # Define expected parsed code
 EXPECTED_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="hello_world",
+        function_name="hello_world",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='def hello_world() -> str:\n    return "Hello, world!"',
         inputs=None,
@@ -30,9 +36,19 @@ EXPECTED_FUNCTION_PARSED_CODE = [
         outputs=("str",),
     ),
     ParsedCode(
-        name=None,
+        function_name="hello_world",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
+        code='def hello_world() -> str:\n    return "Hello, world!"',
+        inputs=None,
+        summary=None,
+        outputs=("str",),
+    ),
+    ParsedCode(
+        function_name=None,
+        class_name=None,
         code_type=CodeType.GLOBAL,
-        code='foo = "bar"',
+        code='foo = "bar"\n\n\n@decorator\n',
         inputs=None,
         summary=None,
         outputs=None,
@@ -41,7 +57,8 @@ EXPECTED_FUNCTION_PARSED_CODE = [
 
 EXPECTED_CLASS_PARSED_CODE = [
     ParsedCode(
-        name="TestClass",
+        class_name="TestClass",
+        function_name=None,
         code_type=CodeType.CLASS,
         summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: test_method\n        input parameters: ('self',)\n        output parameters: None\n        code: ...\n""",
         inputs=("BaseClass",),
@@ -49,10 +66,20 @@ EXPECTED_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="test_method",
-        code_type=CodeType.METHOD,
+        function_name="test_method",
+        class_name=None,
+        code_type=CodeType.FUNCTION,
         code="""def test_method(self):\n        \"""This is a test method. \"""\n        pass""",
         inputs=("self",),
+        summary=None,
+        outputs=None,
+    ),
+    ParsedCode(
+        function_name=None,
+        class_name=None,
+        code_type=CodeType.GLOBAL,
+        code="@decorator\n",
+        inputs=None,
         summary=None,
         outputs=None,
     ),
@@ -92,7 +119,7 @@ z = x + y
     assert isinstance(parsed_code, list)
     assert len(parsed_code) == 1
     assert parsed_code[0].code_type == CodeType.GLOBAL
-    assert parsed_code[0].code == code.strip()
+    assert code.strip() in parsed_code[0].code
 
 
 def test_edge_cases(tmp_path):

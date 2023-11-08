@@ -1,7 +1,23 @@
 from rich.console import Console
 from rich.syntax import Syntax
+from tqdm import tqdm as _tqdm
 
 console = Console()
+
+VERBOSE = False
+
+
+def verbose_print(*args, **kwargs):
+    if VERBOSE:
+        print(*args, **kwargs)
+
+
+def tqdm(*args, **kwargs):
+    if VERBOSE:
+        _tqdm.pandas()
+        return _tqdm(*args, **kwargs)
+    else:
+        return _tqdm(*args, **kwargs, disable=True)
 
 
 def print_ai_assistant_chat_message(response: str):

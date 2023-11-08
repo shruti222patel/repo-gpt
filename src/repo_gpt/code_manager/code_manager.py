@@ -1,82 +1,84 @@
+import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Dict
 
 import pandas as pd
 from tqdm import tqdm
 
-from .code_extractor import CodeExtractor
+from ..console import verbose_print
+from ..openai_service import OpenAIService
+from .code_dir_extractor import CodeDirectoryExtractor
 from .code_processor import CodeProcessor
 
-tqdm.pandas()
+logger = logging.getLogger(__name__)
 
 
 class CodeManager:
-    def __init__(self, output_path: Path, code_root: Path = None):
-        self.code_root = code_root
-        self.output_path = output_path
-        self.extractor = CodeExtractor(self.code_root, self.output_path)
-        self.processor = CodeProcessor(self.code_root)
+    def __init__(
+        self,
+        output_filepath: Path,
+        root_directory: Path = None,
+        openai_service: OpenAIService = None,
+    ):
+        self.root_directory = root_directory
+        self.output_filepath = output_filepath
+        self.openai_service = (
+            openai_service if openai_service is not None else OpenAIService()
+        )
+        self.code_processor = CodeProcessor(self.root_directory, openai_service)
 
-        self.current_df = self.load_data()
+        self.code_df = self.load_code_dataframe()
+        self.directory_extractor = CodeDirectoryExtractor(
+            self.root_directory, self.output_filepath, self.code_df
+        )
 
-    def list_file_structure(self):
-        output = []
-        for current_path, dirs, files in os.walk(self.code_root):
-            level = current_path.replace(self.code_root, "").count(os.sep)
-            indent = "    " * (level)
-            output.append(f"{indent}/{os.path.basename(current_path)}")
-            subindent = "    " * (level + 1)
-            for f in sorted(files):
-                output.append(f"{subindent}{f}")
+    def display_directory_structure(self):
+        structured_output = []
+        for current_path, directories, files in os.walk(self.root_directory):
+            depth = current_path.replace(self.root_directory, "").count(os.sep)
+            indent = "    " * (depth)
+            structured_output.append(f"{indent}/{os.path.basename(current_path)}")
+            sub_indent = "    " * (depth + 1)
+            for file in sorted(files):
+                structured_output.append(f"{sub_indent}{file}")
 
-        return "\n".join(output)
+        return "\n".join(structured_output)
 
-    def load_data(self):
-        df = None
-        if os.path.exists(self.output_path):
-            with open(self.output_path, "rb") as f:
-                data = pickle.load(f)
-            df = pd.DataFrame(data)
-        return df
+    def load_code_dataframe(self):
+        dataframe = None
+        if os.path.exists(self.output_filepath):
+            with open(self.output_filepath, "rb") as file:
+                loaded_data = pickle.load(file)
+            dataframe = pd.DataFrame(loaded_data)
+        return dataframe
 
     def setup(self):
-        # create a dictionary of filepaths and their corresponding checksums
-        embedding_code_file_checksums = (
-            self.get_checksum_filepath_dict(self.current_df)
-            if self.current_df is not None
-            else None
-        )
-        self.parse_code_and_save_embeddings(embedding_code_file_checksums)
+        self._extract_process_and_save_code()
 
-        print("All done! ✨ 🦄 ✨")
+        logger.verbose_info("All done! ✨ 🦄 ✨")
 
-    def get_checksum_filepath_dict(self, df):
-        return (
-            df.drop_duplicates(subset=["file_checksum"])[["filepath", "file_checksum"]]
-            .set_index("file_checksum")
-            .to_dict()["filepath"]
-        )
+    def _store_code_dataframe(self, dataframe):
+        output_directory = Path(self.output_filepath).parent
 
-    def _update_or_create_post(self, df):
-        df = df._append(self.current_df, ignore_index=True)
-        path = Path(self.output_path)
-        directory = path.parent
-
-        if not directory.exists():
-            directory.mkdir(parents=True)
-            print(f"Directory created: {directory}")
+        if not output_directory.exists():
+            output_directory.mkdir(parents=True)
+            print(f"Directory created: {output_directory}")
 
         # Save DataFrame as a pickle file
-        with open(self.output_path, "wb") as f:
-            pickle.dump(df, f)
+        with open(self.output_filepath, "wb") as file:
+            pickle.dump(dataframe, file)
 
-    def parse_code_and_save_embeddings(
-        self, embedding_code_file_checksums: Dict[str, str]
-    ):  # file_checksum : filepath
-        code_blocks = self.extractor.extract_functions(embedding_code_file_checksums)
-        df = self.processor.process(code_blocks)
+    def _extract_process_and_save_code(self):
+        (
+            extracted_code_blocks,
+            outdated_checksums,
+        ) = self.directory_extractor.extract_code_blocks_from_files()
+        processed_dataframe = self.code_processor.process(extracted_code_blocks)
 
-        if df is not None:
-            self._update_or_create_post(df)
+        updated_df = pd.concat([self.code_df, processed_dataframe], ignore_index=True)
+
+        # Remove checksums of updated code
+        updated_df = updated_df[~updated_df["file_checksum"].isin(outdated_checksums)]
+
+        self._store_code_dataframe(updated_df)
