@@ -29,7 +29,8 @@ end
 # Define expected parsed code for Elixir
 EXPECTED_ELIXIR_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="hello_world",
+        function_name="hello_world",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='def hello_world do\n    "Hello, world!"\n  end',
         inputs=None,
@@ -37,7 +38,8 @@ EXPECTED_ELIXIR_FUNCTION_PARSED_CODE = [
         outputs=None,  # Placeholder
     ),
     ParsedCode(
-        name="MyModule",
+        class_name="MyModule",
+        function_name=None,
         code_type=CodeType.CLASS,  # In Elixir, it would be a module
         code=SAMPLE_ELIXIR_FUNCTION_INPUT_TEXT.strip(),
         inputs=None,
@@ -48,7 +50,8 @@ EXPECTED_ELIXIR_FUNCTION_PARSED_CODE = [
 
 EXPECTED_ELIXIR_MODULE_PARSED_CODE = [
     ParsedCode(
-        name="TestModule",
+        class_name="TestModule",
+        function_name=None,
         code_type=CodeType.CLASS,
         code=SAMPLE_ELIXIR_MODULE_INPUT_TEXT.strip(),
         inputs=("BaseModule",),
@@ -56,7 +59,8 @@ EXPECTED_ELIXIR_MODULE_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="test_method",
+        function_name="test_method",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code="def test_method do\n    # This is a test method\n  end",
         inputs=None,

@@ -36,7 +36,8 @@ class AbstractCodeExtractor(ABC):
     def get_file_extensions_with_handlers() -> Set[str]:
         return AbstractCodeExtractor.HANDLER_MAPPING.keys()
 
-    def _detect_language(self, file_path):
+    @staticmethod
+    def detect_language(file_path):
         """Detect the coding language based on the file's extension using Pygments."""
         try:
             lexer = get_lexer_for_filename(file_path)
@@ -47,9 +48,10 @@ class AbstractCodeExtractor(ABC):
                 f"Unknown language for file extension: {os.path.splitext(file_path)[1]}"
             )
 
-    def get_handler(self, filepath: str) -> Type[FileHandler]:
+    @staticmethod
+    def get_handler(filepath: str) -> Type[FileHandler]:
         _, file_extension = os.path.splitext(filepath)
-        handler_class = self.HANDLER_MAPPING.get(file_extension)
+        handler_class = AbstractCodeExtractor.HANDLER_MAPPING.get(file_extension)
         if handler_class is None:
             print(
                 f"No handler for files with extension {file_extension}. Skipping file {filepath}"

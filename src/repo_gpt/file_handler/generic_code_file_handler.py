@@ -79,7 +79,7 @@ class GenericCodeFileHandler(AbstractHandler):
 
         for parsed_code in parsed_codes:
             if parsed_code.code_type == CodeType.CLASS:
-                class_summary = f"Class: {parsed_code.name}"
+                class_summary = f"Class: {parsed_code.class_name}"
                 if parsed_code.inputs:
                     class_summary += (
                         f"\n\tParent Classes: {', '.join(parsed_code.inputs)}"
@@ -92,7 +92,7 @@ class GenericCodeFileHandler(AbstractHandler):
                         summaries.append("\t" + line.strip())
 
             elif parsed_code.code_type == CodeType.FUNCTION:
-                function_summary = f"Function: {parsed_code.name}"
+                function_summary = f"Function: {parsed_code.function_name}"
                 if parsed_code.inputs:
                     function_summary += (
                         f"\n\tInput Parameters: {', '.join(parsed_code.inputs)}"
@@ -105,7 +105,7 @@ class GenericCodeFileHandler(AbstractHandler):
 
             elif parsed_code.code_type == CodeType.METHOD:
                 # This section might not be necessary as methods are captured under the class summary.
-                method_summary = f"Method (within class): {parsed_code.name}"
+                method_summary = f"Method (within class): {parsed_code.function_name}"
                 if parsed_code.inputs:
                     method_summary += (
                         f"\n\tInput Parameters: {', '.join(parsed_code.inputs)}"
@@ -205,7 +205,8 @@ class GenericCodeFileHandler(AbstractHandler):
         modified_source_code = "\n".join(line for line in lines if line is not None)
 
         return ParsedCode(
-            name=None,
+            function_name=None,
+            class_name=None,
             code_type=CodeType.GLOBAL,
             code=modified_source_code,
             summary=None,
@@ -262,11 +263,14 @@ class GenericCodeFileHandler(AbstractHandler):
         )
         return parsed_codes
 
-    def get_function_parsed_code(self, function_node, is_method=False) -> ParsedCode:
+    def get_function_parsed_code(
+        self, function_node, class_name=None, is_method=False
+    ) -> ParsedCode:
         name = self.get_function_name(function_node)
         input_params, output_params = self.get_function_parameters(function_node)
         return ParsedCode(
-            name=name,
+            function_name=name,
+            class_name=class_name,
             code_type=CodeType.METHOD if is_method else CodeType.FUNCTION,
             code=function_node.text.decode("utf8"),
             summary=None,
@@ -284,15 +288,17 @@ class GenericCodeFileHandler(AbstractHandler):
                 for n in node.named_children:
                     if n.type == self.method_node_type:
                         # function
-                        parsed_code = self.get_function_parsed_code(n, is_method=True)
+                        parsed_code = self.get_function_parsed_code(
+                            n, class_name=class_name, is_method=True
+                        )
                         input_params, output_params = self.get_function_parameters(n)
                         class_summary.append(
-                            f"    method: {parsed_code.name}\n        input parameters: {input_params}\n        output parameters: {output_params}\n        code: ...\n"
+                            f"    method: {parsed_code.function_name}\n        input parameters: {input_params}\n        output parameters: {output_params}\n        code: ...\n"
                         )
 
-        name = self.get_class_name(class_node)
         return ParsedCode(
-            name=name,
+            function_name=None,
+            class_name=class_name,
             code_type=CodeType.CLASS,
             code=class_node.text.decode("utf8"),
             summary="\n".join(class_summary),

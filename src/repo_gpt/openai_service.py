@@ -89,6 +89,15 @@ def num_tokens_from_string(prompt, model="gpt-3.5-turbo"):
     return len(tokens_from_string(prompt, model=model))
 
 
+def handle_after_retry(retry_state):
+    if retry_state.attempt_number < 6:
+        print(f"Attempt {retry_state.attempt_number} failed. Retrying...")
+        pass
+    else:
+        # Log or print if final attempt also fails
+        print(f"Final attempt failed after {retry_state.attempt_number} retries.")
+
+
 class OpenAIService(metaclass=Singleton):
     GENERAL_SYSTEM_PROMPT = "You are a world-class software engineer and technical writer specializing in understanding code + architecture + tradeoffs and explaining them clearly and in detail. You are helpful and answer questions the user asks. You organize your explanations in easy to read markdown."
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
@@ -121,7 +130,11 @@ class OpenAIService(metaclass=Singleton):
         )
         return response.choices[0]["message"]["content"]
 
-    @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
+    @retry(
+        wait=wait_random_exponential(min=0.2, max=60),
+        stop=stop_after_attempt(6),
+        after=lambda retry_state: handle_after_retry(retry_state),
+    )
     def query_stream(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
         api_response = openai.ChatCompletion.create(
             messages=[

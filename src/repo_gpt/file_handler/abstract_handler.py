@@ -21,7 +21,8 @@ class CodeType(str, Enum):
 
 @dataclass
 class ParsedCode:
-    name: Union[str, None]
+    function_name: Union[str, None]
+    class_name: Union[str, None]
     code_type: CodeType
     code: str
     summary: Union[str, None]

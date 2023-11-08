@@ -5,6 +5,7 @@ from pathlib import Path
 import configargparse
 
 from repo_gpt import utils
+from repo_gpt.agents.autogen.repo_qna import RepoQnA
 from repo_gpt.logging_config import VERBOSE_INFO, configure_logging
 
 from .code_manager.code_manager import CodeManager
@@ -126,7 +127,8 @@ def main():
         # search_service.simple_search(args.query) # simple search
         search_service.semantic_search(args.query)  # semantic search
     elif args.command == "query":
-        search_service.question_answer(args.question)
+        repo_qna = RepoQnA(args.question, args.code_root_path)
+        repo_qna.initiate_chat()
     elif args.command == "analyze":
         search_service.analyze_file(args.file_path)
     elif args.command == "explain":

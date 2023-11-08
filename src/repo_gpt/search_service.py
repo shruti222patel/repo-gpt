@@ -3,10 +3,11 @@ import logging
 import pickle
 from enum import Enum
 from pathlib import Path, PosixPath
-from typing import Tuple
 
+import numpy as np
 import pandas as pd
 import tqdm
+from Levenshtein import distance as levenshtein_distance
 from rich.markdown import Markdown
 
 from .console import console, pretty_print_code, verbose_print
@@ -26,16 +27,19 @@ class CustomCodeEmbeddingDFEncoder(json.JSONEncoder):
         return super(CustomCodeEmbeddingDFEncoder, self).default(obj)
 
 
-def convert_search_df_to_json(df: pd.DataFrame):
-    selected_columns = [
-        "name",
+def convert_search_df_to_json(
+    df: pd.DataFrame,
+    selected_columns: list = [
+        "class_name",
+        "function_name",
         "code",
         "code_type",
         "summary",
         "inputs",
         "outputs",
         "filepath",
-    ]
+    ],
+):
     df_dict = df[selected_columns].to_dict(orient="records")
     return json.dumps(df_dict, cls=CustomCodeEmbeddingDFEncoder)
 
@@ -72,46 +76,92 @@ class SearchService(metaclass=Singleton):
         return similar_code_df
 
     def find_function_match(
-        self, function_name: str, class_name: str = None
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        self, function_name: str, class_name: str = None, matches_to_return: int = 3
+    ) -> pd.DataFrame:
         print(f"Loaded dataframe with {len(self.df)} code blocks")
         print(f"Searching for function {function_name}...")
 
-        # If class_name is provided, look for class matches
-        class_matches = (
-            self.df[
-                (self.df["name"] == class_name)
-                & (self.df["code_type"] == "CodeType.CLASS")
-            ]
-            if class_name
-            else None
+        # Handle None values for class_name and function_name
+        class_name = class_name or ""
+        function_name = function_name or ""
+
+        # Concatenate class_name and function_name for comparison
+        search_name = f"{class_name}{function_name}"
+
+        # Calculate the Levenshtein distance for the concatenated names without modifying self.df
+        name_distances = self.df.apply(
+            lambda row: levenshtein_distance(
+                search_name, f"{row['class_name'] or ''}{row['function_name'] or ''}"
+            ),
+            axis=1,
         )
 
-        # Look for function matches
-        function_matches = self.df[
-            (self.df["name"] == function_name)
-            # & ((self.df["code_type"] == "CodeType.FUNCTION") | (self.df["code_type"] == "CodeType.METHOD")) # TODO not sure why this doesn't work. I just need to switch to polars
-        ]
+        # Get the indices of the smallest distances
+        closest_indices = np.argsort(name_distances)[:matches_to_return]
 
-        return function_matches, class_matches
+        # Return the top matches using the indices to index into the original DataFrame
+        return self.df.iloc[closest_indices]
+
+    # def find_function_match(
+    #         self, function_name: str, class_name: str = None, matches_to_return: int = 3
+    # ) -> pd.DataFrame:
+    #     print(f"Loaded dataframe with {len(self.df)} code blocks")
+    #     print(f"Searching for function {function_name}...")
+    #
+    #     # Handle None values for class_name and function_name
+    #     class_name = class_name or ''
+    #     function_name = function_name or ''
+    #
+    #     # Concatenate class_name and function_name in the dataframe
+    #     self.df['full_name'] = self.df['class_name'].fillna('') + self.df['function_name'].fillna('')
+    #
+    #     # Calculate the Levenshtein distance for the concatenated names
+    #     search_name = f"{class_name}{function_name}"
+    #     self.df['name_distance'] = self.df['full_name'].apply(
+    #         lambda x: levenshtein_distance(search_name, x)
+    #     )
+    #
+    #     # Sort the DataFrame by the distance and get the top matches_to_return
+    #     return self.df.sort_values(by='name_distance').head(matches_to_return)
+
+    # def semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
+    #     embedding = self.openai_service.get_embedding(query)
+    #     logger.verbose_info("Searching for similar code...")
+    #
+    #     if logger.getEffectiveLevel() < logging.INFO:
+    #         tqdm.pandas()
+    #         self.df["similarities"] = self.df["code_embedding"].progress_apply(
+    #             lambda x: x.dot(embedding)
+    #         )
+    #     else:
+    #         self.df["similarities"] = self.df["code_embedding"].apply(
+    #             lambda x: x.dot(embedding)
+    #         )
+    #
+    #     return self.df.sort_values("similarities", ascending=False).head(
+    #         matches_to_return
+    #     )
 
     def semantic_search_similar_code(self, query: str, matches_to_return: int = 3):
         embedding = self.openai_service.get_embedding(query)
         logger.verbose_info("Searching for similar code...")
 
+        # Calculate similarities as a separate series instead of a DataFrame column
         if logger.getEffectiveLevel() < logging.INFO:
             tqdm.pandas()
-            self.df["similarities"] = self.df["code_embedding"].progress_apply(
+            similarities = self.df["code_embedding"].progress_apply(
                 lambda x: x.dot(embedding)
             )
         else:
-            self.df["similarities"] = self.df["code_embedding"].apply(
-                lambda x: x.dot(embedding)
-            )
+            similarities = self.df["code_embedding"].apply(lambda x: x.dot(embedding))
 
-        return self.df.sort_values("similarities", ascending=False).head(
-            matches_to_return
+        # Use the similarities series to sort the DataFrame index
+        sorted_indices = (
+            similarities.sort_values(ascending=False).head(matches_to_return).index
         )
+
+        # Return the top matches using the sorted indices to index into the original DataFrame
+        return self.df.loc[sorted_indices]
 
     def question_answer(self, question: str):
         similar_code_df = self.semantic_search_similar_code(question)

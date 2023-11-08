@@ -145,7 +145,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
     def _extract_code_blocks_from_single_file(
         self, file_path: str, file_checksum: str
     ) -> List[ParsedCode]:
-        handler_for_file = self.get_handler(file_path)
+        handler_for_file = AbstractCodeExtractor.get_handler(file_path)
         extracted_blocks_for_file = []
         if handler_for_file:
             extracted_blocks_for_file = handler_for_file().extract_code(file_path)

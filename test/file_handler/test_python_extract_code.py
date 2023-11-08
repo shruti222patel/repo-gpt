@@ -27,7 +27,8 @@ class TestClass(BaseClass):
 # Define expected parsed code
 EXPECTED_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="hello_world",
+        function_name="hello_world",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='def hello_world() -> str:\n    return "Hello, world!"',
         inputs=None,
@@ -35,7 +36,8 @@ EXPECTED_FUNCTION_PARSED_CODE = [
         outputs=("str",),
     ),
     ParsedCode(
-        name="hello_world",
+        function_name="hello_world",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='def hello_world() -> str:\n    return "Hello, world!"',
         inputs=None,
@@ -43,7 +45,8 @@ EXPECTED_FUNCTION_PARSED_CODE = [
         outputs=("str",),
     ),
     ParsedCode(
-        name=None,
+        function_name=None,
+        class_name=None,
         code_type=CodeType.GLOBAL,
         code='foo = "bar"\n\n\n@decorator\n',
         inputs=None,
@@ -54,7 +57,8 @@ EXPECTED_FUNCTION_PARSED_CODE = [
 
 EXPECTED_CLASS_PARSED_CODE = [
     ParsedCode(
-        name="TestClass",
+        class_name="TestClass",
+        function_name=None,
         code_type=CodeType.CLASS,
         summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: test_method\n        input parameters: ('self',)\n        output parameters: None\n        code: ...\n""",
         inputs=("BaseClass",),
@@ -62,7 +66,8 @@ EXPECTED_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="test_method",
+        function_name="test_method",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code="""def test_method(self):\n        \"""This is a test method. \"""\n        pass""",
         inputs=("self",),
@@ -70,7 +75,8 @@ EXPECTED_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name=None,
+        function_name=None,
+        class_name=None,
         code_type=CodeType.GLOBAL,
         code="@decorator\n",
         inputs=None,

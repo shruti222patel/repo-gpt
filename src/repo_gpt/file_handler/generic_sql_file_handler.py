@@ -79,7 +79,8 @@ class GenericSQLFileHandler(AbstractHandler):
             if code_type is not None:
                 parsed_nodes.append(
                     ParsedCode(
-                        name=None,
+                        function_name=None,
+                        class_name=None,
                         code_type=code_type,
                         code=node.text.decode("utf8"),
                         inputs=None,

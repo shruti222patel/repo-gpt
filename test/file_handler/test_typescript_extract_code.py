@@ -29,7 +29,8 @@ class TestClass extends BaseClass {
 # Define expected parsed code for TypeScript
 EXPECTED_TS_FUNCTION_PARSED_CODE = [
     ParsedCode(
-        name="helloWorld",
+        function_name="helloWorld",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='function helloWorld(): string {\n    return "Hello, world!";\n}',
         inputs=None,
@@ -37,7 +38,8 @@ EXPECTED_TS_FUNCTION_PARSED_CODE = [
         outputs=("string",),
     ),
     ParsedCode(
-        name="helloWorld",
+        function_name="helloWorld",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code='async function helloWorld(): string {\n    return "Hello, world!";\n}',
         inputs=None,
@@ -48,7 +50,8 @@ EXPECTED_TS_FUNCTION_PARSED_CODE = [
 
 EXPECTED_TS_CLASS_PARSED_CODE = [
     ParsedCode(
-        name="TestClass",
+        class_name="TestClass",
+        function_name=None,
         code_type=CodeType.CLASS,
         summary="""class: TestClass\n    parent classes: ('BaseClass',)\n\n    method: testMethod\n        input parameters: None\n        output parameters: ('void',)\n        code: ...\n""",
         inputs=("BaseClass",),
@@ -56,7 +59,8 @@ EXPECTED_TS_CLASS_PARSED_CODE = [
         outputs=None,
     ),
     ParsedCode(
-        name="testMethod",
+        function_name="testMethod",
+        class_name=None,
         code_type=CodeType.FUNCTION,
         code="testMethod(): void {\n        // This is a test method.\n        return;\n    }",
         inputs=None,

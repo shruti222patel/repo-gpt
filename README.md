@@ -16,6 +16,7 @@ Repo-GPT is a Python CLI tool designed to utilize the power of OpenAI's GPT-3 mo
 Repo-GPT can be installed via [pip](https://pip.pypa.io/en/stable/):
 
 ```bash
+brew install graphviz
 pip install repo-gpt
 ```
 
@@ -93,6 +94,16 @@ repo-gpt add-test function_name --test_save_file_path $PWD/test.py --testing_pac
 We welcome your contributions! Before starting, please make sure to install Python `3.11` and the latest version of [poetry](https://python-poetry.org/docs/#installing-with-pipx). [Pyenv](https://github.com/pyenv/pyenv) is a convenient tool to manage multiple Python versions on your computer.
 
 Here are the steps to set up your development environment:
+0. Install global dependencies:
+
+   ```shell
+   nvm use --lts
+
+   brew install graphviz
+   export CFLAGS="-I $(brew --prefix graphviz)/include"
+   export LDFLAGS="-L $(brew --prefix graphviz)/lib"
+   pip install poetry
+   ```
 
 1. Export your OpenAI key to your environment variables:
 
@@ -104,6 +115,7 @@ Here are the steps to set up your development environment:
 
    ```shell
    poetry install --no-root
+   jupyter lab build
    ```
 
 3. Install pre-commit hooks:

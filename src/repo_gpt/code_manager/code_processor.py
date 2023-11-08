@@ -1,7 +1,10 @@
 import logging
+from itertools import islice
 from typing import List
 
+import numpy as np
 import pandas as pd
+import tiktoken
 from tqdm import tqdm
 
 from ..console import verbose_print
@@ -26,24 +29,43 @@ class CodeProcessor:
             f"Generating openai embeddings for {len(df)} code blocks. This may take a while because of rate limiting..."
         )
 
-        err_cnt = 0
+        def len_safe_get_embedding(text):
+            max_tokens = 8191
+            encoding_name = "cl100k_base"
 
-        def safe_get_embedding(code):
-            # Note: this truncates the code to 8096 tokens, which is the limit for the embedding model we use
-            # TODO: figure out a way where we don't lose so much info
-            try:
-                tokens = tokens_from_string(code)
-                token_limit = 8096  # Limit for the embedding model we use ADA TODO: Connect this const with the model name
-                if len(tokens) > token_limit:
-                    code = "".join(tokens[:token_limit])
-                return self.openai_service.get_embedding(code)
-            except Exception as e:
-                print(f"Error generating embedding for code: {code}. Error: {e}")
-                return None
+            chunk_embeddings = []
+            chunk_lens = []
+            for chunk in CodeProcessor._chunked_tokens(
+                text, encoding_name=encoding_name, chunk_length=max_tokens
+            ):
+                chunk_embeddings.append(self.openai_service.get_embedding(chunk))
+                chunk_lens.append(len(chunk))
+
+            chunk_embedding = np.average(chunk_embeddings, axis=0, weights=chunk_lens)
+            return chunk_embedding / np.linalg.norm(
+                chunk_embedding
+            )  # normalizes length to 1
 
         if logger.getEffectiveLevel() < logging.INFO:
             tqdm.pandas()
-            df["code_embedding"] = df["code"].progress_apply(safe_get_embedding)
+            df["code_embedding"] = df["code"].progress_apply(len_safe_get_embedding)
         else:
-            df["code_embedding"] = df["code"].apply(safe_get_embedding)
+            df["code_embedding"] = df["code"].apply(len_safe_get_embedding)
         return df
+
+    @staticmethod
+    def _batched(iterable, n):
+        """Batch data into tuples of length n. The last batch may be shorter."""
+        # batched('ABCDEFG', 3) --> ABC DEF G
+        if n < 1:
+            raise ValueError("n must be at least one")
+        it = iter(iterable)
+        while batch := tuple(islice(it, n)):
+            yield batch
+
+    @staticmethod
+    def _chunked_tokens(text, encoding_name, chunk_length):
+        encoding = tiktoken.get_encoding(encoding_name)
+        tokens = encoding.encode(text)
+        chunks_iterator = CodeProcessor._batched(tokens, chunk_length)
+        yield from chunks_iterator
