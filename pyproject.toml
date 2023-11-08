@@ -41,6 +41,7 @@ pylint = "^3.0.1"
 python-levenshtein = "^0.23.0"
 colored = "^2.2.3"
 fuzzywuzzy = "^0.18.0"
+polars = "^0.19.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
