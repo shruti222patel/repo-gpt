@@ -1,5 +1,4 @@
 #!./venv/bin/python
-import os
 from pathlib import Path
 from typing import Union
 
@@ -72,50 +71,16 @@ def main():
     )
     parser_query.add_argument("question", type=str, help="Question to ask")
 
-    # Sub-command to analyze a file
-    analyze_file = subparsers.add_parser("analyze", help="Analyze a file")
-    analyze_file.add_argument("file_path", type=str, help="File to analyze")
-
-    # Sub-command to explain a file
-    explain_code = subparsers.add_parser("explain", help="Explain a code snippet")
-    explain_code.add_argument(
-        "--language", default="", type=str, help="Language of the code"
-    )
-    explain_code.add_argument("--code", type=str, help="Code you want to explain")
-
-    # Sub-command to analyze a file
-    add_test = subparsers.add_parser("add-test", help="Add tests for existing function")
-    add_test.add_argument(
-        "function_name", type=str, help="Name of the function you'd like to test"
-    )
-    add_test.add_argument(
-        "--file_name",
-        type=str,
-        help="Name of the file the function is found in. This is helpful if there are many functions with the same "
-        "name. If this isn't specified, I assume the function name is unique and I'll create tests for the first "
-        "matching function I find. When a file_name is passed, I will assume the function name is unique in the "
-        "file, and write tests for the first function I find with the same name in the file.",
-        default="",
-    )
-    add_test.add_argument(
-        "--test_save_file_path",
-        type=str,
-        help="Filepath to save the generated tests to",
-    )
-
     parser_help = subparsers.add_parser("help", help="Show this help message")
     parser_help.set_defaults(func=print_help)
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     # Services
     openai_service = OpenAIService()
 
-    search_service = (
-        SearchService(openai_service, args.pickle_path)
-        if args.command not in ["setup", "explain"]
-        else None
-    )
+    search_service = SearchService(openai_service, args.pickle_path)
+
     if int(args.verbose) >= 1:
         configure_logging(VERBOSE_INFO)
 
@@ -125,94 +90,29 @@ def main():
         manager = CodeManager(pickle_path, code_root_path)
         manager.setup()
     elif args.command == "search":
-        update_code_embedding_file(args.pickle_path)
-        # search_service.simple_search(args.query) # simple search
-        search_service.semantic_search(args.query)  # semantic search
-    elif args.command == "query":
-        update_code_embedding_file(args.pickle_path)
-        repo_qna = RepoQnA(args.question, args.code_root_path)
-        repo_qna.initiate_chat()
-    elif args.command == "explain":
-        update_code_embedding_file(args.pickle_path)
-        search_service.explain(args.question)
-    elif args.command == "analyze":  # TODO change to explain function
-        update_code_embedding_file(args.pickle_path)
-        search_service.analyze_file(args.file_path)
-    elif args.command == "explain":
-        search_service = SearchService(openai_service, language=args.language)
-        return search_service.explain(args.code)
-    elif args.command == "add-test":
-        code_manager = CodeManager(args.pickle_path)
-        # Look for the function name in the embedding file
-        add_tests(
-            search_service,
-            code_manager,
-            args.function_name,
-            args.test_save_file_path,
-            args.testing_package,
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
         )
+        _, additional_args = parser_search.parse_known_args()
+        # search_service.simple_search(args.query) # simple search
+        search_service.semantic_search(additional_args[0])  # semantic search
+    elif args.command == "query":
+        update_code_embedding_file(
+            search_service, args.code_root_path, args.pickle_path
+        )
+        _, additional_args = parser_query.parse_known_args()
+        repo_qna = RepoQnA(additional_args[0], args.code_root_path, args.pickle_path)
+        repo_qna.initiate_chat()
     else:
         parser.print_help()
 
 
 def update_code_embedding_file(
-    search_service, code_embedding_file_path, function_name=None
+    search_service, root_file_path: str, code_embedding_file_path: str
 ) -> Union[None, str]:
-    manager = CodeManager(code_embedding_file_path)
-    if function_name:
-        function_to_test_df, class_to_test_df = search_service.find_function_match(
-            function_name
-        )
-
-        if function_to_test_df.empty:
-            print(f"Function {function_name} not found.")
-            return
-
-        checksum_filepath_dict = {
-            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
-                "filepath"
-            ]
-        }
-        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
-
-        return function_to_test_df.iloc[0]["code"]
-    else:
-        manager.setup()
-    search_service.refresh()
-
-
-def add_tests(
-    search_service,
-    code_manager,
-    function_name,
-    test_save_file_path,
-    testing_package,
-):
-    # TODO: add language & test framework from config file
-    # Check file path isn't a directory
-    if os.path.isdir(test_save_file_path):
-        print(
-            f"Error: {test_save_file_path} is a directory. Please specify a file path."
-        )
-        return
-
-    code = update_code_embedding_file(search_service, code_manager, function_name)
-
-    # Save gpt history
-    # Ask gpt to explain the function
-    test_generator = TestGenerator(
-        code,
-        language="python",
-        unit_test_package=testing_package,
-        debug=True,
-    )
-    unit_tests = test_generator.unit_tests_from_function()
-
-    print(f"Writing generated unit_tests to {test_save_file_path}...")
-    # Save code to file
-    if test_save_file_path is not None:
-        with open(test_save_file_path, "a") as f:
-            f.write(unit_tests)
+    manager = CodeManager(Path(code_embedding_file_path), Path(root_file_path))
+    manager.setup()
+    search_service.refresh_df()
 
 
 if __name__ == "__main__":

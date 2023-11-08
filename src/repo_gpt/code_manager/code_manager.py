@@ -18,7 +18,7 @@ class CodeManager:
     def __init__(
         self,
         output_filepath: Path,
-        root_directory: Path = None,
+        root_directory: Path,
         openai_service: OpenAIService = None,
     ):
         self.root_directory = root_directory

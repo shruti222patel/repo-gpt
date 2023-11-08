@@ -60,33 +60,17 @@ After setup, you can perform various tasks:
   repo-gpt query <text/question>
   ```
 
-- **File Analysis**: Analyze a specific file:
-
-  ```shell
-  repo-gpt analyze <file_path>
-  ```
-
 - **Help**: Access the help guide:
 
   ```shell
   repo-gpt help
   ```
-
-- **Generate tests**: Generate tests for a function:
-Note: this assumes the function name is unique in the codebase, otherwise, it will pick the first function it finds with that name.
-
-   ```shell
-   repo-gpt add-test <unique function name> --test_save_file_path <absolute filepath to add tests to> --testing_package <testing package to use e.g. pytest>
-   ```
-
 Example:
 
 ```bash
 repo-gpt setup --root_path ./my_project
 repo-gpt search "extract handler"
 repo-gpt query "What does the function `calculate_sum` do?"
-repo-gpt analyze ./my_project/main.py
-repo-gpt add-test function_name --test_save_file_path $PWD/test.py --testing_package pytest
 ```
 
 ## Contributing
@@ -164,10 +148,10 @@ Here are the improvements we are currently considering:
 - [X] Add CI/CD
 - [X] Prettify output
 - [ ] Add readme section about how folks can contribute parsers for their own languages
-- [ ] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
+- [X] Save # of tokens each code snippet has so we can ensure we don't pass too many tokens to GPT
 - [X] Add SQL file handler
 - [ ] Add DBT file handler -- this may be a break in pattern as we'd want to use the manifest.json file
 - [X] Create VSCode extension
-- [ ] Ensure files can be added & deleted and the indexing picks up on the changes.
+- [X] Ensure files can be added & deleted and the indexing picks up on the changes.
 - [ ] Add .repogptignore file to config & use it in the indexing command
 - [ ] Use pygments library for prettier code formatting
