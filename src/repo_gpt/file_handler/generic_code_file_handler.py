@@ -412,47 +412,5 @@ class TypeScriptFileHandler(GenericCodeFileHandler):
         )
 
 
-class ElixirFileHandler(GenericCodeFileHandler):
-    def __init__(self):
-        super().__init__(
-            lang="elixir",
-            function_name_node_type="identifier",  # Placeholder, might differ
-            class_name_node_type="identifier",  # Elixir has modules, not classes
-            function_node_type=None,
-            class_node_type=None,  # Elixir has modules, not classes
-            method_node_type=None,
-            class_internal_node_type="module_body",
-            parent_class_node_type="use_clause",  # Elixir uses `use` for certain extensions
-            function_output_node_type="type_annotation",  # Placeholder, Elixir's type annotations are different
-            function_parameters_node_type="function_parameters",
-            parent_class_name_node_type="module_name",  # Elixir has modules, not classes
-            method_name_node_type="function_name",
-            root_node_type="program",
-            function_query="""
-(call
-  target: (identifier) @ignore
-  (arguments
-    [
-      ; regular function clause
-      (call target: (identifier) @name)
-      ; function clause with a guard clause
-      (binary_operator
-        left: (call target: (identifier) @name)
-        operator: "when")
-    ])
-  (#match? @ignore "^(def|defp|defdelegate|defguard|defguardp|defmacro|defmacrop|defn|defnp)$")) @function
-""",
-            class_query="""
-(call
-  target: (identifier) @ignore
-  (arguments (alias) @name)
-  (#match? @ignore "^(defmodule|defprotocol)$")) @definition.module
-""",
-        )
-
-
-"""Code File Handler"""
-
-
 class GenericCodeFileHandler:
     pass
