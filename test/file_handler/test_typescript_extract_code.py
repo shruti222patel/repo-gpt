@@ -1,7 +1,7 @@
 import pytest
 
-from src.repo_gpt.file_handler.abstract_handler import CodeType, ParsedCode
-from src.repo_gpt.file_handler.generic_code_file_handler import TypeScriptFileHandler
+from repogpt.file_handler.abstract_handler import CodeType, ParsedCode
+from repogpt.file_handler.generic_code_file_handler import TypeScriptFileHandler
 
 handler = TypeScriptFileHandler()
 

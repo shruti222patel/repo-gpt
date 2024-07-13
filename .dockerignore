@@ -233,3 +233,16 @@ fabric.properties
 # Can't be having folks committing the crime of sharing their creds
 .env
 expt
+.venv
+.ipynb_checkpoints
+.github
+imgs
+build
+dist
+test
+README.md
+.pre-commit-config.yaml
+.gitignore
+.cache
+.pytest_cache
+.repogpt

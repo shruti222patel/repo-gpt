@@ -1,7 +1,7 @@
 import pytest
 
-from src.repo_gpt.file_handler.abstract_handler import VSCodeExtCodeLensCode
-from src.repo_gpt.file_handler.generic_code_file_handler import (  # Assuming you have this handler
+from repogpt.file_handler.abstract_handler import VSCodeExtCodeLensCode
+from repogpt.file_handler.generic_code_file_handler import (  # Assuming you have this handler
     PHPFileHandler,
 )
 

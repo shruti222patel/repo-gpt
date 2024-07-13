@@ -1,7 +1,5 @@
-import pytest
-
-from repo_gpt.file_handler.abstract_handler import CodeType, ParsedCode
-from repo_gpt.file_handler.generic_sql_file_handler import GenericSQLFileHandler
+from repogpt.file_handler.abstract_handler import CodeType, ParsedCode
+from repogpt.file_handler.generic_sql_file_handler import GenericSQLFileHandler
 
 handler = GenericSQLFileHandler()
 
