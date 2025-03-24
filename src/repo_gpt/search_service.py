@@ -48,11 +48,13 @@ class SearchService(metaclass=Singleton):
     def __init__(
         self,
         openai_service: OpenAIService,
-        pickle_path: Path = None,
+        pickle_path: Path | str = None,
         language: str = "python",
     ):
-        self.pickle_path = pickle_path
-        if pickle_path is not None:
+        self.pickle_path = (
+            pickle_path if isinstance(pickle_path, Path) else Path(pickle_path)
+        )
+        if self.pickle_path is not None and self.pickle_path.exists():
             self.refresh_df()
         self.openai_service = openai_service
         self.language = language

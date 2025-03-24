@@ -30,6 +30,7 @@ class AbstractCodeExtractor(ABC):
         ".sql": GenericSQLFileHandler,
         ".php": PHPFileHandler,
         ".ts": TypeScriptFileHandler,
+        ".tsx": TypeScriptFileHandler,
     }
 
     @staticmethod
