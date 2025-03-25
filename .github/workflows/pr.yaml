@@ -29,6 +29,9 @@ jobs:
         run: |
           curl -sSL https://install.python-poetry.org | python - -y
 
+      - name: Clean Poetry install cache
+        run: rm -rf ~/.cache/pypoetry ~/.local/share/pypoetry
+
       - name: Install Graphviz system dependencies
         run: sudo apt-get update && sudo apt-get install -y graphviz graphviz-dev
 
