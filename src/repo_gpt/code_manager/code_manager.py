@@ -17,12 +17,18 @@ logger = logging.getLogger(__name__)
 class CodeManager:
     def __init__(
         self,
-        output_filepath: Path,
-        root_directory: Path = None,
+        output_filepath: Path | str,
+        root_directory: Path | str,
         openai_service: OpenAIService = None,
     ):
-        self.root_directory = root_directory
-        self.output_filepath = output_filepath
+        self.root_directory = (
+            root_directory if isinstance(root_directory, Path) else Path(root_directory)
+        )
+        self.output_filepath = (
+            output_filepath
+            if isinstance(output_filepath, Path)
+            else Path(output_filepath)
+        )
         self.openai_service = (
             openai_service if openai_service is not None else OpenAIService()
         )

@@ -12,7 +12,7 @@ jobs:
   pre-commit-and-tests:
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11" ]
+        python-version: ["3.9", "3.10", "3.11", "3.12" ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,12 +25,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clean Poetry install cache
+        run: rm -rf ~/.cache/pypoetry ~/.local/share/pypoetry
+
+      - name: Install Graphviz system dependencies
+        run: sudo apt-get update && sudo apt-get install -y graphviz graphviz-dev
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python - -y
-
-      - name: Update PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
@@ -39,6 +43,6 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest test
         env:
           OPENAI_API_KEY: ""

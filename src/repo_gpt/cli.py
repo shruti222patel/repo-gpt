@@ -125,24 +125,24 @@ def main():
         manager = CodeManager(pickle_path, code_root_path)
         manager.setup()
     elif args.command == "search":
-        update_code_embedding_file(args.pickle_path)
+        update_code_embedding_file(args.pickle_path, args.code_root_path)
         # search_service.simple_search(args.query) # simple search
         search_service.semantic_search(args.query)  # semantic search
     elif args.command == "query":
-        update_code_embedding_file(args.pickle_path)
+        update_code_embedding_file(args.pickle_path, args.code_root_path)
         repo_qna = RepoQnA(args.question, args.code_root_path)
         repo_qna.initiate_chat()
     elif args.command == "explain":
-        update_code_embedding_file(args.pickle_path)
+        update_code_embedding_file(args.pickle_path, args.code_root_path)
         search_service.explain(args.question)
     elif args.command == "analyze":  # TODO change to explain function
-        update_code_embedding_file(args.pickle_path)
+        update_code_embedding_file(args.pickle_path, args.code_root_path)
         search_service.analyze_file(args.file_path)
     elif args.command == "explain":
         search_service = SearchService(openai_service, language=args.language)
         return search_service.explain(args.code)
     elif args.command == "add-test":
-        code_manager = CodeManager(args.pickle_path)
+        code_manager = CodeManager(args.pickle_path, args.code_root_path)
         # Look for the function name in the embedding file
         add_tests(
             search_service,
@@ -156,9 +156,17 @@ def main():
 
 
 def update_code_embedding_file(
-    search_service, code_embedding_file_path, function_name=None
+    code_embedding_file_path, code_root_path
 ) -> Union[None, str]:
-    manager = CodeManager(code_embedding_file_path)
+    print(f"Code embedding file path: {code_embedding_file_path}")
+    manager = CodeManager(code_embedding_file_path, code_root_path)
+    manager.setup()
+
+
+def update_code_embedding_file_and_search_service(
+    code_embedding_file_path, code_root_path, search_service=None, function_name=None
+) -> Union[None, str]:
+    manager = CodeManager(code_embedding_file_path, code_root_path)
     if function_name:
         function_to_test_df, class_to_test_df = search_service.find_function_match(
             function_name
@@ -196,7 +204,9 @@ def add_tests(
         )
         return
 
-    code = update_code_embedding_file(search_service, code_manager, function_name)
+    code = update_code_embedding_file_and_search_service(
+        code_manager, search_service, function_name
+    )
 
     # Save gpt history
     # Ask gpt to explain the function

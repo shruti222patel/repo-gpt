@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-gpt"
-version = "0.1.6"
+version = "0.3.0"
 description = "Search your code repository using GPT3.5 or GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
@@ -14,26 +14,25 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.13"
 pandas = "^2.0.2"
 numpy = "^1.24.3"
 tqdm = "^4.65.0"
 pathspec = "^0.11.1"
-openai = "^0.27.8"
+openai = "^1.68.2"
 rich = "^13.4.1"
 tenacity = "^8.2.2"
-tree-sitter-languages = "^1.7.0"
+tree-sitter-languages = "^1.10.2"
 tiktoken = "^0.4.0"
 configargparse = "^1.7"
 toml = "^0.10.2"
-pyautogen = "^0.1.14"
 code2flow = "^2.5.1"
 networkx = "^3.1"
 pydeps = "^1.12.17"
@@ -41,6 +40,7 @@ pylint = "^3.0.1"
 python-levenshtein = "^0.23.0"
 colored = "^2.2.3"
 fuzzywuzzy = "^0.18.0"
+polars = "^0.19.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.2"
@@ -59,7 +59,6 @@ pygraphviz = "^1.11" # Moved here temporarily because so pygraphviz doesn't need
 #    "--global-option=-I/usr/local/opt/graphviz/include/",
 #    "--global-option=-L/usr/local/opt/graphviz/lib/"
 #]
-modal = "^0.55.4043"
 
 [tool.poetry.scripts]
 repo-gpt = "repo_gpt.cli:main"
@@ -73,3 +72,4 @@ python_paths = ["src"]
 
 [tool.repo_gpt]
 code_root_path = "./src/repo_gpt"
+pickle_path  = "./.repo_gpt/code_embeddings.pkl"
