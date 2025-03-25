@@ -74,3 +74,4 @@ python_paths = ["src"]
 
 [tool.repo_gpt]
 code_root_path = "./src/repo_gpt"
+pickle_path  = "./.repo_gpt/code_embeddings.pkl"
