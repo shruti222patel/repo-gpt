@@ -73,4 +73,20 @@ build-backend = "poetry.core.masonry.api"
 python_paths = ["src"]
 
 [tool.repo_gpt]
-code_root_path = "./src/repo_gpt"
+code_root_path = "./"
+pickle_path  = "./.repo_gpt/code_embeddings.pkl"
+exclude_paths = [
+    "./dist",
+    "./build",
+    "./.venv",
+    "./.github",
+    "./.cache",
+    "./.ipynb_checkpoints",
+    "./expt",
+    "./.repo_gpt",
+    "./imgs",
+    "LICENSE",
+    "./.env",
+    "./repogpt",
+    "./poetry.lock",
+]

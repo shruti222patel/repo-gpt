@@ -2,6 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 from tqdm import tqdm
@@ -19,10 +20,12 @@ class CodeManager:
         self,
         output_filepath: Path,
         root_directory: Path = None,
+        exclude_files: List[Path] = [],
         openai_service: OpenAIService = None,
     ):
         self.root_directory = root_directory
         self.output_filepath = output_filepath
+        self.exclude_files = exclude_files
         self.openai_service = (
             openai_service if openai_service is not None else OpenAIService()
         )
@@ -30,7 +33,7 @@ class CodeManager:
 
         self.code_df = self.load_code_dataframe()
         self.directory_extractor = CodeDirectoryExtractor(
-            self.root_directory, self.output_filepath, self.code_df
+            self.root_directory, self.output_filepath, self.exclude_files, self.code_df
         )
 
     def display_directory_structure(self):

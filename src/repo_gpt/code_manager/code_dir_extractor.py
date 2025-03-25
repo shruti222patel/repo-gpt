@@ -21,10 +21,12 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         self,
         root_directory_path: Path,
         output_filepath: Path,
+        exclude_paths: List[Path] = [],
         code_df: pd.DataFrame | None = None,
     ):
         self.root_directory_path = root_directory_path
         self.output_filepath = output_filepath
+        self.exclude_paths = exclude_paths
         self.all_code_files = self._find_all_code_files()
         self.code_df = code_df
 
@@ -52,8 +54,9 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
             ]
 
             for file in files:
-                full_file_path = relative_path / file
-                all_code_files.append(self.root_directory_path / full_file_path)
+                if file not in self.exclude_paths:
+                    full_file_path = relative_path / file
+                    all_code_files.append(self.root_directory_path / full_file_path)
         return all_code_files
 
     def _map_checksum_to_filepath(self) -> Dict[str, str]:  # checksum : filepath
@@ -80,6 +83,9 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         # Check if the directory is hidden
         dirname = Path(dirpath).name
         if dirname.startswith("."):
+            return False
+
+        if Path(dirpath) in self.exclude_paths:
             return False
 
         gitignore = self.get_gitignore()
