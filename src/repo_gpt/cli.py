@@ -38,6 +38,7 @@ def main():
     parser.add_argument(
         "--exclude_paths",
         nargs="*",
+        type=str,
         default=[],
         help="List of file or directory paths to exclude from parsing",
     )
