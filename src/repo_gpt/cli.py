@@ -36,6 +36,12 @@ def main():
         default=str(Path.cwd()),
     )
     parser.add_argument(
+        "--exclude_paths",
+        nargs="*",
+        default=[],
+        help="List of file or directory paths to exclude from parsing",
+    )
+    parser.add_argument(
         "--testing_package",
         type=str,
         help="Package/library GPT should use to write tests (e.g. pytest, unittest, etc.)",
@@ -122,7 +128,7 @@ def main():
     if args.command == "setup":
         code_root_path = Path(args.code_root_path)
         pickle_path = Path(args.pickle_path)
-        manager = CodeManager(pickle_path, code_root_path)
+        manager = CodeManager(pickle_path, code_root_path, args.exclude_paths)
         manager.setup()
     elif args.command == "search":
         update_code_embedding_file(args.pickle_path, args.code_root_path)

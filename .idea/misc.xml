@@ -3,5 +3,9 @@
   <component name="Black">
     <option name="sdkName" value="Poetry (repo-gpt)" />
   </component>
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (dev-gpt)" project-jdk-type="Python SDK" />
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (repo-gpt)" project-jdk-type="Python SDK" />
+>>>>>>> db8ba66 (Added exclude file paths)
 </project>
