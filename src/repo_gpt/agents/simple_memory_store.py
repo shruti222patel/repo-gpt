@@ -1,7 +1,12 @@
 import json
 import logging
+import os
 
-import openai
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 import tiktoken
 from tenacity import (  # for exponential backoff
     retry,
@@ -106,11 +111,11 @@ class MemoryStore:
             },
         ]
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=self.SUMMARY_MODEL, messages=summary_messages
             )
             logging.debug(response)
-            assistant_message = response["choices"][0]["message"]
+            assistant_message = response.choices[0].message
             logging.debug(assistant_message)
             self._initialize_messages()
             assistant_message.role = "user"

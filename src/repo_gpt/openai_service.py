@@ -6,6 +6,7 @@ import os
 import numpy as np
 import openai as openai
 import tiktoken
+from openai import OpenAI
 from tenacity import (  # for exponential backoff
     retry,
     stop_after_attempt,
@@ -103,8 +104,8 @@ class OpenAIService(metaclass=Singleton):
     ANALYSIS_SYSTEM_PROMPT = "You are a world-class developer with an eagle eye for unintended bugs and edge cases. You carefully explain code with great detail and accuracy. You organize your explanations in markdown-formatted, bulleted lists."
 
     def __init__(self, openai_api_key: str | None = None):
-        openai.api_key = (
-            openai_api_key if openai_api_key else os.environ["OPENAI_API_KEY"]
+        self.client = OpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
         )
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
@@ -117,7 +118,7 @@ class OpenAIService(metaclass=Singleton):
         ```
         Question: {query}"""
 
-        response = openai.ChatCompletion.create(
+        response = self.client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
@@ -136,7 +137,7 @@ class OpenAIService(metaclass=Singleton):
         after=lambda retry_state: handle_after_retry(retry_state),
     )
     def query_stream(self, query: str, system_prompt: str = GENERAL_SYSTEM_PROMPT):
-        api_response = openai.ChatCompletion.create(
+        api_response = self.client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
@@ -158,23 +159,19 @@ class OpenAIService(metaclass=Singleton):
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))
     def get_embedding(self, text: str):
         try:
-            response = openai.Embedding.create(input=[text], model=EMBEDDING_MODEL)
-        except openai.error.OpenAIError as e:
-            # print(f"OpenAIError: {e}")
-            # print(f"Input: {text}")
-            # print(f"Response: {response}")
-            raise e
-
-        if (
-            "data" not in response
-            or len(response["data"]) == 0
-            or "embedding" not in response["data"][0]
-        ):
-            raise ValueError(
-                "Invalid response from OpenAI API: 'data' field missing or empty, or 'embedding' field missing"
+            response = self.client.embeddings.create(
+                input=[text], model=EMBEDDING_MODEL
             )
+        except openai.OpenAIError as e:
+            raise RuntimeError(f"OpenAI API error: {e}") from e
 
-        return np.asarray(response["data"][0]["embedding"], dtype=np.float32)
+        # Defensive checks
+        try:
+            embedding = response.data[0].embedding
+            return np.asarray(embedding, dtype=np.float32)
+        except (AttributeError, IndexError) as e:
+            print("❌ Malformed OpenAI response:", response)
+            raise ValueError("Invalid OpenAI response: missing 'embedding'") from e
 
 
 GPT_3_MODELS = {4096: "gpt-3.5-turbo", 16384: "gpt-3.5-turbo-16k"}
