@@ -5,7 +5,7 @@ import pathlib
 import shutil
 import sys
 import textwrap
-from typing import Iterator, List
+from typing import Iterator, List, Tuple
 from uuid import uuid4
 
 from multilspy.multilspy_logger import MultilspyLogger
@@ -14,13 +14,18 @@ from multilspy.multilspy_utils import FileUtils
 cli_path = pathlib.Path(__file__).resolve().parents[2] / "src" / "repo_gpt" / "cli.py"
 
 
-async def run_cli(cmd: List[str]):
+async def run_cli(cmd: List[str]) -> Tuple[bytes, bytes, asyncio.subprocess.Process]:
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        raise EnvironmentError("❌ OPENAI_API_KEY must be set in the test environment.")
+    print(openai_api_key)
     process = await asyncio.create_subprocess_exec(
         sys.executable,
         str(cli_path),
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
+        env={"OPENAI_API_KEY": openai_api_key},
     )
     stdout, stderr = await process.communicate()
     stdout_text = stdout.decode().strip()
