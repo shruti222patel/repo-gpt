@@ -5,7 +5,6 @@ from pathlib import Path
 
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
-from tqdm import tqdm
 
 from repo_gpt.agents.base_agent import BaseAgent
 from repo_gpt.file_handler.generic_code_file_handler import PythonFileHandler

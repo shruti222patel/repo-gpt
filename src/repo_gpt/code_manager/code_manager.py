@@ -4,7 +4,6 @@ import pickle
 from pathlib import Path
 
 import pandas as pd
-from tqdm import tqdm
 
 from ..console import verbose_print
 from ..openai_service import OpenAIService

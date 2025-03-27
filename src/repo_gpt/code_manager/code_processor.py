@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import tiktoken
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
@@ -47,7 +47,7 @@ class CodeProcessor:
             )  # normalizes length to 1
 
         if logger.getEffectiveLevel() < logging.INFO:
-            tqdm.pandas()
+            tqdm.pandas(desc="Processing")
             df["code_embedding"] = df["code"].progress_apply(len_safe_get_embedding)
         else:
             df["code_embedding"] = df["code"].apply(len_safe_get_embedding)

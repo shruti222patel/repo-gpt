@@ -28,5 +28,5 @@ async def test_cli_search(pickle_factory, code_language: Language):
             "How do I set up the repo locally?",
         ]
     )
-
+    print(stderr)
     assert process.returncode == 0

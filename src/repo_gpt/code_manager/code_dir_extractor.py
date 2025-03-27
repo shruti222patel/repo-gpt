@@ -7,7 +7,7 @@ from typing import Dict, List, Set
 import pandas as pd
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode

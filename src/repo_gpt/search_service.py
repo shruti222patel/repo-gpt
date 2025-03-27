@@ -6,9 +6,9 @@ from pathlib import Path, PosixPath
 
 import numpy as np
 import pandas as pd
-import tqdm
 from Levenshtein import distance as levenshtein_distance
 from rich.markdown import Markdown
+from tqdm.auto import tqdm
 
 from .console import console, pretty_print_code, verbose_print
 from .file_handler.abstract_handler import ParsedCode
@@ -150,7 +150,7 @@ class SearchService(metaclass=Singleton):
 
         # Calculate similarities as a separate series instead of a DataFrame column
         if logger.getEffectiveLevel() < logging.INFO:
-            tqdm.pandas()
+            tqdm.pandas(desc="Processing")
             similarities = self.df["code_embedding"].progress_apply(
                 lambda x: x.dot(embedding)
             )
