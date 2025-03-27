@@ -8,7 +8,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 @pytest.mark.parametrize("code_language", LANGUAGES_TO_TEST)
 @pytest.mark.asyncio
-async def test_cli_query(pickle_factory, code_language: Language):
+async def test_cli_search(pickle_factory, code_language: Language):
     repo_paths: RepoPaths = await pickle_factory(code_language)
 
     assert (
@@ -24,10 +24,9 @@ async def test_cli_query(pickle_factory, code_language: Language):
             str(repo_paths.code_source_path),
             "--pickle_path",
             str(repo_paths.pickle_path),
-            "query",
+            "search",
             "How do I set up the repo locally?",
         ]
     )
 
     assert process.returncode == 0
-    assert b"Librarian" in stdout

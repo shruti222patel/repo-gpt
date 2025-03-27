@@ -10,7 +10,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 @pytest.mark.parametrize("code_language", LANGUAGES_TO_TEST)
 @pytest.mark.asyncio
-async def test_pickle_contents(pickle_factory, code_language: Language):
+async def test_cli_setup(pickle_factory, code_language: Language):
     repo_paths: RepoPaths = await pickle_factory(code_language)
 
     assert (
