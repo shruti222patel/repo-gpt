@@ -2,7 +2,7 @@ name: PR Checks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -10,20 +10,19 @@ concurrency:
 
 jobs:
   pre-commit-and-tests:
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12" ]
+    environment: qa  # 👈 this is your GitHub environment name
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - name: Clean Poetry install cache
         run: rm -rf ~/.cache/pypoetry ~/.local/share/pypoetry
@@ -43,6 +42,6 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
       - name: Run tests
-        run: poetry run pytest test/unit -n auto
+        run: poetry run pytest test/it -n auto
         env:
-          OPENAI_API_KEY: ""
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # 👈 pulls from QA env secrets

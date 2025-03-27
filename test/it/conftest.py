@@ -6,7 +6,7 @@ import pickle
 import sys
 import textwrap
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import pytest
@@ -15,24 +15,36 @@ from multilspy.multilspy_utils import FileUtils
 
 from repo_gpt.code_manager.abstract_extractor import Language
 
-LANGUAGE_REPOS = {
-    # Language.PYTHON: {
-    #     "repo_url": "https://github.com/threeal/python-starter/",
-    #     "repo_commit": "0fbc16f23cc374620a1d3f54dd8bc63d718ba735",
-    # },
-    # Language.PHP: {
-    #     "repo_url": "https://github.com/masterfermin02/php-starter-kit/",
-    #     "repo_commit": "9ed6a4b56036cf02001a223faa65ec96dc49ea11",
-    # },
-    Language.TYPESCRIPT: {
-        "repo_url": "https://github.com/TimMikeladze/typescript-react-package-starter/",
-        "repo_commit": "c5c52fd4751c6b1a58b8b950457a23e069505a26",
-    },
-    # Language.SQL: {
-    #     "repo_url": "https://github.com/dbt-labs/jaffle-shop/",
-    #     "repo_commit": "0bbd774b8a543151249e4a9184876d839be5651a",
-    # }
+
+@dataclasses.dataclass(frozen=True)
+class RepoConfig:
+    repo_url: str
+    repo_commit: str
+    function_to_check: Optional[str] = None
+
+
+LANGUAGE_REPOS: dict[Language, RepoConfig] = {
+    Language.PYTHON: RepoConfig(
+        repo_url="https://github.com/threeal/python-starter/",
+        repo_commit="0fbc16f23cc374620a1d3f54dd8bc63d718ba735",
+        function_to_check="fibonacci_sequence",
+    ),
+    Language.PHP: RepoConfig(
+        repo_url="https://github.com/masterfermin02/php-starter-kit/",
+        repo_commit="9ed6a4b56036cf02001a223faa65ec96dc49ea11",
+        function_to_check="testInvalidPageExceptionIsThrownWhenNoPage",
+    ),
+    Language.TYPESCRIPT: RepoConfig(
+        repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
+        repo_commit="c5c52fd4751c6b1a58b8b950457a23e069505a26",
+        function_to_check="onSuccess",
+    ),
+    Language.SQL: RepoConfig(
+        repo_url="https://github.com/dbt-labs/jaffle-shop/",
+        repo_commit="0bbd774b8a543151249e4a9184876d839be5651a",
+    ),
 }
+
 
 LANGUAGES_TO_TEST = LANGUAGE_REPOS.keys()
 
@@ -90,8 +102,8 @@ def setup_pickle_factory(tmp_path_factory):
         if code_language not in LANGUAGE_REPOS:
             raise ValueError(f"Unsupported language: {code_language.value}")
 
-        repo_url = LANGUAGE_REPOS[code_language]["repo_url"]
-        repo_commit = LANGUAGE_REPOS[code_language]["repo_commit"]
+        repo_url = LANGUAGE_REPOS[code_language].repo_url
+        repo_commit = LANGUAGE_REPOS[code_language].repo_commit
 
         code_source_path = get_repo_cache_path(repo_url, repo_commit, base_cache_dir)
 

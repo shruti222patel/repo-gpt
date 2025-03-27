@@ -1,5 +1,5 @@
 import pickle
-from test.it.conftest import LANGUAGES_TO_TEST, RepoPaths
+from test.it.conftest import LANGUAGE_REPOS, LANGUAGES_TO_TEST, RepoPaths
 
 import pandas as pd
 import pytest
@@ -38,16 +38,14 @@ async def test_cli_setup(pickle_factory, code_language: Language):
     missing_cols = expected_columns - set(data.columns)
     assert not missing_cols, f"❌ [{code_language.name}] Missing columns: {missing_cols}"
 
-    print(f"\n🧾 [{code_language.name}] Columns in the pickled DataFrame:")
-    for col in data.columns:
-        print(f"  - {col}")
+    # print(f"\n🧾 [{code_language.name}] Columns in the pickled DataFrame:")
+    # for col in data.columns:
+    #     print(f"  - {col}")
 
     with pd.option_context("display.max_columns", None, "display.width", 1000):
         print(f"\n🔎 [{code_language.name}] Head of the DataFrame:")
         print(data.head())
 
-    # # Only assert presence of 'fibonacci_sequence' for Python, others may not have it
-    # if code_language == Language.PYTHON:
-    #     assert (
-    #         "fibonacci_sequence" in data["function_name"].values
-    #     ), "❌ 'fibonacci_sequence' not found in 'function_name' column"
+    assert (
+        LANGUAGE_REPOS[code_language].function_to_check in data["function_name"].values
+    ), "❌ 'fibonacci_sequence' not found in 'function_name' column"

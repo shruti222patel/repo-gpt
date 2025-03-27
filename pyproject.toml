@@ -54,6 +54,7 @@ jupyterlab = "^4.0.8"
 bump2version = "^1.0.1"
 ipython = "^8.14.0"
 pygraphviz = "^1.11" # Moved here temporarily because so pygraphviz doesn't need to be install on ci/cd.
+pytest-xdist = "^3.6.1"
 
 #[tool.poetry.dependencies.pygraphviz]
 ## This marker ensures that the build options are only applied on macOS
