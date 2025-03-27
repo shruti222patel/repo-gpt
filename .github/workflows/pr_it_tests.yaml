@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit-and-tests:
+  integration-tests:
     environment: qa  # 👈 this is your GitHub environment name
     runs-on: ubuntu-latest
 
