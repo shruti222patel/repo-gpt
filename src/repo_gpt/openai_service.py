@@ -151,9 +151,9 @@ class OpenAIService(metaclass=Singleton):
         )
 
         for chunk in api_response:
-            delta = chunk["choices"][0]["delta"]
-            if "content" in delta:
-                content = delta["content"]
+            delta = chunk.choices[0].delta
+            if delta.content:
+                content = delta.content
                 print(content, end="")
 
     @retry(wait=wait_random_exponential(min=0.2, max=60), stop=stop_after_attempt(6))

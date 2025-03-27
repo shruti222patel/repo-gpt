@@ -141,7 +141,10 @@ def main():
         search_service.explain(args.question)
     elif args.command == "analyze":  # TODO change to explain function
         update_code_embedding_file(args.pickle_path, args.code_root_path)
-        search_service.analyze_file(args.file_path)
+        file_to_analyze = Path(args.file_path)
+        if not file_to_analyze.is_absolute():
+            file_to_analyze = Path(args.code_root_path) / file_to_analyze
+        search_service.analyze_file(file_to_analyze)
     elif args.command == "explain":
         search_service = SearchService(openai_service, language=args.language)
         return search_service.explain(args.code)
