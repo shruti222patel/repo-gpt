@@ -42,8 +42,7 @@ colored = "^2.2.3"
 fuzzywuzzy = "^0.18.0"
 polars = "^0.19.12"
 multilspy = "^0.0.14"
-autogen = "^0.8.3"
-ag2 = {extras = ["openai"], version = "^0.8.3"}
+autogen = "^0.8.3" # same thing as: ag2 = {extras = ["openai"], version = "^0.8.3"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
