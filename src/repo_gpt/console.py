@@ -1,6 +1,6 @@
 from rich.console import Console
 from rich.syntax import Syntax
-from tqdm import tqdm as _tqdm
+from tqdm.auto import tqdm as _tqdm
 
 console = Console()
 
@@ -14,7 +14,7 @@ def verbose_print(*args, **kwargs):
 
 def tqdm(*args, **kwargs):
     if VERBOSE:
-        _tqdm.pandas()
+        _tqdm.pandas(desc="Processing")
         return _tqdm(*args, **kwargs)
     else:
         return _tqdm(*args, **kwargs, disable=True)

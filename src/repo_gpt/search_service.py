@@ -6,9 +6,9 @@ from pathlib import Path, PosixPath
 
 import numpy as np
 import pandas as pd
-import tqdm
 from Levenshtein import distance as levenshtein_distance
 from rich.markdown import Markdown
+from tqdm.auto import tqdm
 
 from .console import console, pretty_print_code, verbose_print
 from .file_handler.abstract_handler import ParsedCode
@@ -150,20 +150,21 @@ class SearchService(metaclass=Singleton):
 
         # Calculate similarities as a separate series instead of a DataFrame column
         if logger.getEffectiveLevel() < logging.INFO:
-            tqdm.pandas()
+            tqdm.pandas(desc="Processing")
             similarities = self.df["code_embedding"].progress_apply(
                 lambda x: x.dot(embedding)
             )
         else:
             similarities = self.df["code_embedding"].apply(lambda x: x.dot(embedding))
 
-        # Use the similarities series to sort the DataFrame index
-        sorted_indices = (
-            similarities.sort_values(ascending=False).head(matches_to_return).index
-        )
+        # Attach similarities as a column
+        df_with_scores = self.df.copy()
+        df_with_scores["similarities"] = similarities
 
-        # Return the top matches using the sorted indices to index into the original DataFrame
-        return self.df.loc[sorted_indices]
+        # Sort and return top matches
+        return df_with_scores.sort_values("similarities", ascending=False).head(
+            matches_to_return
+        )
 
     def question_answer(self, question: str):
         similar_code_df = self.semantic_search_similar_code(question)

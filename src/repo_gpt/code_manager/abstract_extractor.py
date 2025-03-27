@@ -17,6 +17,13 @@ from repo_gpt.file_handler.generic_code_file_handler import (
 from repo_gpt.file_handler.generic_sql_file_handler import GenericSQLFileHandler
 
 
+class Language(Enum):
+    PYTHON = "python"
+    SQL = "sql"
+    PHP = "php"
+    TYPESCRIPT = "typescript"
+
+
 class LanguageHandler(Enum):
     PYTHON = PythonFileHandler
     SQL = GenericSQLFileHandler

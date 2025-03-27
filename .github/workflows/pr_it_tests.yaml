@@ -2,7 +2,7 @@ name: PR Checks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize]
     paths:
       - 'src/**'
       - 'tests/**'
@@ -13,21 +13,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit-and-tests:
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12" ]
+  integration-tests:
+    environment: qa
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - name: Clean Poetry install cache
         run: rm -rf ~/.cache/pypoetry ~/.local/share/pypoetry
@@ -43,10 +42,7 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.0
-
       - name: Run tests
-        run: poetry run pytest test/unit -n auto
+        run: poetry run pytest -s test/it -n auto
         env:
-          OPENAI_API_KEY: ""
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -1,9 +1,14 @@
 import inspect
 import json
 import logging
+import os
 from abc import ABC, abstractmethod
 
-import openai
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 import tiktoken
 from tenacity import (  # for exponential backoff
     retry,
@@ -70,7 +75,7 @@ class BaseAgent(ABC):
     # @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
     def chat_completion_request(self, function_call="auto", model=GPT_MODEL):
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=self.memory_store.messages,
                 functions=self.functions,
