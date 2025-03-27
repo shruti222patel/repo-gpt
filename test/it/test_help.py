@@ -1,4 +1,4 @@
-from test.it.utils import run_cli
+from test.it.conftest import run_cli
 
 import pytest
 
