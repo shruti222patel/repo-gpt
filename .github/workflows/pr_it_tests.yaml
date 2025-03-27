@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   integration-tests:
-    environment: qa  # 👈 this is your GitHub environment name
+    environment: qa
     runs-on: ubuntu-latest
 
     steps:
@@ -45,4 +45,4 @@ jobs:
       - name: Run tests
         run: poetry run pytest -s test/it -n auto
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # 👈 pulls from QA env secrets
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
