@@ -48,7 +48,7 @@ class RepoQnA:
 
     def create_code_librarian(self):
         return autogen.AssistantAgent(
-            name="CodeRepo Librarian",
+            name="Librarian",
             system_message="""You are a detail-oriented world-class software engineer. You specialize in answering questions about the user's codebase. You use the functions to search and understand the codebase.""",
             llm_config=self.config,
         )
@@ -180,7 +180,6 @@ class RepoQnA:
                 },
             ],
             "config_list": config,
-            "request_timeout": 120,
         }
 
     def create_user_proxy(self, is_termination_msg):
@@ -281,7 +280,7 @@ ANSWER: I cannot answer this question.
                 },
             )
 
-        def view_function_code(self, function_name):
+        def view_function_code(self, function_name, call_id=None):
             # logger.info(f"Reading the code for: {function_name}")
             df = self.search_service.find_function_match(function_name)
 
@@ -290,7 +289,7 @@ ANSWER: I cannot answer this question.
             else:
                 return convert_search_df_to_json(df, ["code"])
 
-        def semantic_search(self, query):
+        def semantic_search(self, query, call_id=None):
             # logger.info(f"Searching the codebase for: {query}")
             return convert_search_df_to_json(
                 self.search_service.semantic_search_similar_code(query)
@@ -325,7 +324,7 @@ ANSWER: I cannot answer this question.
         #
         #     return "\n".join(results)
 
-        def view_raw_file_contents(self, file_path):
+        def view_raw_file_contents(self, file_path, call_id=None):
             partial_path = Path(file_path)
             full_path = self.root_path / Path(file_path)
             print(full_path)
