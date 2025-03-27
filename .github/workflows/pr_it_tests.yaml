@@ -39,6 +39,6 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: poetry run pytest test/it -n auto
+        run: poetry run pytest -s test/it -n auto
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # 👈 pulls from QA env secrets
