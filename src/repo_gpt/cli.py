@@ -1,11 +1,12 @@
 #!./venv/bin/python
+import logging
 import os
 from pathlib import Path
 from typing import Union
 
 import configargparse
 
-from repo_gpt import utils
+from repo_gpt import logging_config, utils
 from repo_gpt.agents.autogen.repo_qna import RepoQnA
 from repo_gpt.code_manager.code_manager import CodeManager
 from repo_gpt.logging_config import VERBOSE_INFO, configure_logging
@@ -16,7 +17,11 @@ from repo_gpt.test_generator import TestGenerator
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
 
+logger = logging.getLogger(__name__)
+
+
 def main():
+    configure_logging(VERBOSE_INFO)
     parser = configargparse.ArgParser(
         default_config_files=["pyproject.toml", ".repo_gpt/config.toml"],
         description="Code extractor and searcher",
