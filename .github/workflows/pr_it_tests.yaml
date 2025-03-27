@@ -3,6 +3,10 @@ name: PR Checks
 on:
   pull_request:
     types: [opened, synchronize]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
