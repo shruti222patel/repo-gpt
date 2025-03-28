@@ -171,29 +171,23 @@ def update_code_embedding_file(
 
 
 def update_code_embedding_file_and_search_service(
-    code_embedding_file_path, code_root_path, search_service=None, function_name=None
+    manager, search_service, function_name
 ) -> Union[None, str]:
-    manager = CodeManager(code_embedding_file_path, code_root_path)
-    if function_name:
-        function_to_test_df, class_to_test_df = search_service.find_function_match(
-            function_name
-        )
+    function_to_test_df = search_service.find_function_match(function_name)
 
-        if function_to_test_df.empty:
-            print(f"Function {function_name} not found.")
-            return
+    if function_to_test_df.empty:
+        print(f"Function {function_name} not found.")
+        return
 
-        checksum_filepath_dict = {
-            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
-                "filepath"
-            ]
-        }
-        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
+    checksum_filepath_dict = {
+        function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
+            "filepath"
+        ]
+    }
+    manager.setup()
 
-        return function_to_test_df.iloc[0]["code"]
-    else:
-        manager.setup()
-    search_service.refresh()
+    search_service.refresh_df()
+    return function_to_test_df.iloc[0]["code"]
 
 
 def add_tests(

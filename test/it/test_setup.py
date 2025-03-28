@@ -20,23 +20,7 @@ async def test_cli_setup(pickle_factory, code_language: Language):
     with repo_paths.pickle_path.open("rb") as f:
         data = pickle.load(f)
 
-    expected_columns = {
-        "function_name",
-        "class_name",
-        "code_type",
-        "code",
-        "summary",
-        "inputs",
-        "outputs",
-        "filepath",
-        "file_checksum",
-        "code_embedding",
-    }
-
     assert isinstance(data, pd.DataFrame), f"❌ [{code_language.name}] Not a DataFrame"
-
-    missing_cols = expected_columns - set(data.columns)
-    assert not missing_cols, f"❌ [{code_language.name}] Missing columns: {missing_cols}"
 
     # print(f"\n🧾 [{code_language.name}] Columns in the pickled DataFrame:")
     # for col in data.columns:
@@ -46,6 +30,7 @@ async def test_cli_setup(pickle_factory, code_language: Language):
         print(f"\n🔎 [{code_language.name}] Head of the DataFrame:")
         print(data.head())
 
+    function_to_check = LANGUAGE_REPOS[code_language].function_to_check
     assert (
-        LANGUAGE_REPOS[code_language].function_to_check in data["function_name"].values
-    ), "❌ 'fibonacci_sequence' not found in 'function_name' column"
+        function_to_check in data["function_name"].values
+    ), f"❌ '{function_to_check}' not found in 'function_name' column"

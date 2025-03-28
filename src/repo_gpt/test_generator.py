@@ -87,11 +87,11 @@ class TestGenerator:
     def get_assistant_stream_response(self, api_response: dict) -> str:
         assistant_message = ""
         for chunk in api_response:
-            delta = chunk["choices"][0]["delta"]
+            delta = chunk.choices[0].delta
+            if delta.content:
+                assistant_message += delta.content
             if self.debug:
                 self.print_message_delta(delta)
-            if "content" in delta:
-                assistant_message += delta["content"]
         return assistant_message
 
     def find_gpt3_model(self):
@@ -103,7 +103,7 @@ class TestGenerator:
 
     def generate_stream_response(self) -> str:
         model = self.find_gpt3_model()
-        response = self.openai_service.client.completions.create(
+        response = self.openai_service.client.chat.completions.create(
             model=model,
             messages=self.messages,
             temperature=self.TEMPERATURE,
