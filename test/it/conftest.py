@@ -32,10 +32,10 @@ LANGUAGE_REPOS: dict[Language, RepoConfig] = {
         function_to_check="fibonacci_sequence",
     ),
     Language.PHP: RepoConfig(
-        repo_url="https://github.com/masterfermin02/php-starter-kit/",
-        repo_commit="9ed6a4b56036cf02001a223faa65ec96dc49ea11",
-        file_to_analyze="src/Bootstrap.php",
-        function_to_check="show",
+        repo_url="https://github.com/panique/mini3",
+        repo_commit="34a2867e8175319074e9ff122227e34c1e428a8f",
+        file_to_analyze="application/Controller/ErrorController.php",
+        function_to_check="splitUrl",
     ),
     Language.TYPESCRIPT: RepoConfig(
         repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
