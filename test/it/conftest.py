@@ -41,7 +41,7 @@ LANGUAGE_REPOS: dict[Language, RepoConfig] = {
         repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
         repo_commit="c5c52fd4751c6b1a58b8b950457a23e069505a26",
         file_to_analyze="src/Example.tsx",
-        function_to_check="onSuccess",
+        function_to_check="Example",
     ),
     Language.SQL: RepoConfig(
         repo_url="https://github.com/dbt-labs/jaffle-shop/",
