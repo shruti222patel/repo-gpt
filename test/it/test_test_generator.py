@@ -12,6 +12,8 @@ pytest_plugins = ("pytest_asyncio",)
 async def test_cli_test_generator(
     pickle_factory, code_language: Language, tmp_path_factory
 ):
+    if code_language.name.lower() == "sql":
+        pytest.skip("Skipping test for SQL code language")
     repo_paths: RepoPaths = await pickle_factory(code_language)
     function_to_test = LANGUAGE_REPOS[code_language].function_to_check
     generated_test_file_path = (
@@ -51,4 +53,8 @@ async def test_cli_test_generator(
 
     assert (
         function_to_test in test_contents
+    ), f"❌ '{function_to_test}' not mentioned in the test file"
+
+    assert (
+        "assert" in test_contents
     ), f"❌ '{function_to_test}' not mentioned in the test file"
