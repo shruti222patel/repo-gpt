@@ -36,9 +36,19 @@ async def test_cli_test_generator(
             str(generated_test_file_path),
         ]
     )
-    print(stderr)
     assert process.returncode == 0
 
+    assert function_to_test in stdout.decode(
+        "utf-8"
+    ), f"❌ '{function_to_test}' not found in chatgpt response"
+
+    # Check that generated file exists and has the expected contents
     assert (
-        function_to_test in stdout
-    ), f"❌ '{function_to_test}' not found in 'function_name' column"
+        generated_test_file_path.exists()
+    ), f"❌ Test file was not created at {generated_test_file_path}"
+
+    test_contents = generated_test_file_path.read_text(encoding="utf-8")
+
+    assert (
+        function_to_test in test_contents
+    ), f"❌ '{function_to_test}' not mentioned in the test file"
