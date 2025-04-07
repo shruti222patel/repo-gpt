@@ -62,6 +62,35 @@ class RepoPaths:
     pickle_path: Path
 
 
+def pytest_addoption(parser):
+    """Add command-line option to filter tests by language."""
+    parser.addoption(
+        "--language",
+        action="store",
+        default=None,
+        help="Specify language to test (e.g., python, typescript, php)",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Filter tests based on specified language."""
+    language_option = config.getoption("--language")
+    if language_option is None:
+        # No filtering if no language specified
+        return
+
+    language_option = language_option.upper()
+
+    skip_marker = pytest.mark.skip(reason=f"Test not for language: {language_option}")
+
+    for item in items:
+        # For parametrized tests using code_language
+        if hasattr(item, "callspec") and "code_language" in item.callspec.params:
+            param_language = item.callspec.params["code_language"]
+            if param_language.name.upper() != language_option:
+                item.add_marker(skip_marker)
+
+
 async def run_cli(cmd: List[str]) -> Tuple[bytes, bytes, asyncio.subprocess.Process]:
     openai_api_key = os.getenv("OPENAI_API_KEY")
     if not openai_api_key:
