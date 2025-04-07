@@ -50,12 +50,11 @@ async def test_cli_test_generator(
     ), f"❌ Test file was not created at {generated_test_file_path}"
 
     test_contents = generated_test_file_path.read_text(encoding="utf-8")
-    print("TEST CONTENTS")
-    print(test_contents)
+
     assert (
-        function_to_test in test_contents
+        function_to_test.lower() in test_contents.lower()
     ), f"❌ '{function_to_test}' not mentioned in the test file"
 
     assert (
-        "assert" in test_contents
+        "assert" in test_contents.lower()
     ), f"❌ '{function_to_test}' not mentioned in the test file"

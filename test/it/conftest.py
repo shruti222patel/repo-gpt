@@ -25,29 +25,29 @@ class RepoConfig:
 
 
 LANGUAGE_REPOS: dict[Language, RepoConfig] = {
-    # Language.PYTHON: RepoConfig(
-    #     repo_url="https://github.com/threeal/python-starter/",
-    #     repo_commit="0fbc16f23cc374620a1d3f54dd8bc63d718ba735",
-    #     file_to_analyze="lib/my_fibonacci/sequence.py",
-    #     function_to_check="fibonacci_sequence",
-    # ),
+    Language.PYTHON: RepoConfig(
+        repo_url="https://github.com/threeal/python-starter/",
+        repo_commit="0fbc16f23cc374620a1d3f54dd8bc63d718ba735",
+        file_to_analyze="lib/my_fibonacci/sequence.py",
+        function_to_check="fibonacci_sequence",
+    ),
     Language.PHP: RepoConfig(
         repo_url="https://github.com/masterfermin02/php-starter-kit/",
         repo_commit="9ed6a4b56036cf02001a223faa65ec96dc49ea11",
         file_to_analyze="src/Bootstrap.php",
         function_to_check="show",
     ),
-    # Language.TYPESCRIPT: RepoConfig(
-    #     repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
-    #     repo_commit="c5c52fd4751c6b1a58b8b950457a23e069505a26",
-    #     file_to_analyze="src/Example.tsx",
-    #     function_to_check="onSuccess",
-    # ),
-    # Language.SQL: RepoConfig(
-    #     repo_url="https://github.com/dbt-labs/jaffle-shop/",
-    #     repo_commit="0bbd774b8a543151249e4a9184876d839be5651a",
-    #     file_to_analyze="models/staging/stg_products.sql",
-    # ),
+    Language.TYPESCRIPT: RepoConfig(
+        repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
+        repo_commit="c5c52fd4751c6b1a58b8b950457a23e069505a26",
+        file_to_analyze="src/Example.tsx",
+        function_to_check="onSuccess",
+    ),
+    Language.SQL: RepoConfig(
+        repo_url="https://github.com/dbt-labs/jaffle-shop/",
+        repo_commit="0bbd774b8a543151249e4a9184876d839be5651a",
+        file_to_analyze="models/staging/stg_products.sql",
+    ),
 }
 
 
