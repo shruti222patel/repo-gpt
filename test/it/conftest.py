@@ -32,13 +32,13 @@ LANGUAGE_REPOS: dict[Language, RepoConfig] = {
         function_to_check="fibonacci_sequence",
     ),
     Language.PHP: RepoConfig(
-        repo_url="https://github.com/panique/mini3",
+        repo_url="https://github.com/panique/mini3/",
         repo_commit="34a2867e8175319074e9ff122227e34c1e428a8f",
         file_to_analyze="application/Controller/ErrorController.php",
         function_to_check="splitUrl",
     ),
     Language.TYPESCRIPT: RepoConfig(
-        repo_url="https://github.com/jellydn/typescript-mini-starter",
+        repo_url="https://github.com/jellydn/typescript-mini-starter/",
         repo_commit="7ec7b47640dfae1dc988b25ac11a0f062f1c46d5",
         file_to_analyze="src/index.ts",
         function_to_check="sum",
