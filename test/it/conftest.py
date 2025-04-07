@@ -38,10 +38,10 @@ LANGUAGE_REPOS: dict[Language, RepoConfig] = {
         function_to_check="splitUrl",
     ),
     Language.TYPESCRIPT: RepoConfig(
-        repo_url="https://github.com/TimMikeladze/typescript-react-package-starter/",
-        repo_commit="c5c52fd4751c6b1a58b8b950457a23e069505a26",
-        file_to_analyze="src/Example.tsx",
-        function_to_check="Example",
+        repo_url="https://github.com/jellydn/typescript-mini-starter",
+        repo_commit="7ec7b47640dfae1dc988b25ac11a0f062f1c46d5",
+        file_to_analyze="src/index.ts",
+        function_to_check="sum",
     ),
     Language.SQL: RepoConfig(
         repo_url="https://github.com/dbt-labs/jaffle-shop/",
