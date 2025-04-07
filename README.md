@@ -136,6 +136,31 @@ Here are the steps to set up your development environment:
    poetry run python cli.py search <text/question>
    ```
 
+### Testing
+#### Integration Tests
+Run pytest with the --language option to filter tests by language:
+```bash
+# Run only Python tests
+pytest --language python test/it
+```
+```bash
+# Run only TypeScript tests
+pytest --language typescript test/it
+```
+```bash
+# Run only PHP tests
+pytest --language php test/it
+```
+If the --language option is omitted, all tests will be run:
+```bash
+# Run all tests (default behavior)
+pytest test/it
+```
+#### Unit
+```bash
+pytest test/unit
+```
+
 ### Debugging
 
 You can view the output of the `code_embeddings.pkl` using the following command:
