@@ -7,7 +7,7 @@ from typing import Dict, List, Set
 import pandas as pd
 from pathspec import PathSpec
 from pathspec.patterns import GitWildMatchPattern
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
@@ -107,7 +107,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         extracted_blocks = []
         outdated_checksums = set()
         for code_file_path in code_file_paths:
-            # print(f"🟢 Processing {code_file_path}")
+            # logger.verbose_info(f"🟢 Processing {code_file_path}")
             current_file_checksum = self.generate_md5_checksum(code_file_path)
             existing_filepath_checksum = filepath_to_checksum.get(code_file_path, None)
             if existing_filepath_checksum == current_file_checksum:

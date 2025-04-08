@@ -1,23 +1,27 @@
 #!./venv/bin/python
+import logging
 import os
 from pathlib import Path
 from typing import Union
 
 import configargparse
 
-from repo_gpt import utils
+from repo_gpt import logging_config, utils
 from repo_gpt.agents.autogen.repo_qna import RepoQnA
+from repo_gpt.code_manager.code_manager import CodeManager
 from repo_gpt.logging_config import VERBOSE_INFO, configure_logging
-
-from .code_manager.code_manager import CodeManager
-from .openai_service import OpenAIService
-from .search_service import SearchService
-from .test_generator import TestGenerator
+from repo_gpt.openai_service import OpenAIService
+from repo_gpt.search_service import SearchService
+from repo_gpt.test_generator import TestGenerator
 
 CODE_EMBEDDING_FILE_PATH = str(Path.cwd() / ".repo_gpt" / "code_embeddings.pkl")
 
 
+logger = logging.getLogger(__name__)
+
+
 def main():
+    configure_logging(VERBOSE_INFO)
     parser = configargparse.ArgParser(
         default_config_files=["pyproject.toml", ".repo_gpt/config.toml"],
         description="Code extractor and searcher",
@@ -137,7 +141,10 @@ def main():
         search_service.explain(args.question)
     elif args.command == "analyze":  # TODO change to explain function
         update_code_embedding_file(args.pickle_path, args.code_root_path)
-        search_service.analyze_file(args.file_path)
+        file_to_analyze = Path(args.file_path)
+        if not file_to_analyze.is_absolute():
+            file_to_analyze = Path(args.code_root_path) / file_to_analyze
+        search_service.analyze_file(file_to_analyze)
     elif args.command == "explain":
         search_service = SearchService(openai_service, language=args.language)
         return search_service.explain(args.code)
@@ -164,29 +171,23 @@ def update_code_embedding_file(
 
 
 def update_code_embedding_file_and_search_service(
-    code_embedding_file_path, code_root_path, search_service=None, function_name=None
+    manager, search_service, function_name
 ) -> Union[None, str]:
-    manager = CodeManager(code_embedding_file_path, code_root_path)
-    if function_name:
-        function_to_test_df, class_to_test_df = search_service.find_function_match(
-            function_name
-        )
+    function_to_test_df = search_service.find_function_match(function_name)
 
-        if function_to_test_df.empty:
-            print(f"Function {function_name} not found.")
-            return
+    if function_to_test_df.empty:
+        print(f"Function {function_name} not found.")
+        return
 
-        checksum_filepath_dict = {
-            function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
-                "filepath"
-            ]
-        }
-        manager.parse_code_and_save_embeddings(checksum_filepath_dict)
+    checksum_filepath_dict = {
+        function_to_test_df.iloc[0]["file_checksum"]: function_to_test_df.iloc[0][
+            "filepath"
+        ]
+    }
+    manager.setup()
 
-        return function_to_test_df.iloc[0]["code"]
-    else:
-        manager.setup()
-    search_service.refresh()
+    search_service.refresh_df()
+    return function_to_test_df.iloc[0]["code"]
 
 
 def add_tests(

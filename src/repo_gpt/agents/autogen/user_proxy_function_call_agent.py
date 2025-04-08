@@ -18,7 +18,7 @@ class UserProxyFunctionCallAgent(autogen.UserProxyAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def execute_function(self, func_call):
+    def execute_function(self, func_call, call_id=None):
         """Execute a function call and return the result.
 
         Override this function to modify the way to execute a function call.
