@@ -16,7 +16,7 @@ from tenacity import (  # for exponential backoff
 from repo_gpt.utils import Singleton
 
 MAX_RETRIES = 3
-GPT_MODEL = "gpt-3.5-turbo"  # "gpt-3.5-turbo-16k"
+DEFAULT_GPT_MODEL = "gpt-4o-mini"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 TEMPERATURE = (
     0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
@@ -25,13 +25,24 @@ TEMPERATURE = (
 logger = logging.getLogger(__name__)
 
 
-def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
-    """Return the number of tokens used by a list of messages."""
+def num_tokens_from_messages(messages, model=DEFAULT_GPT_MODEL):
+    """
+    Return the number of tokens used by a list of messages.
+
+    Args:
+        messages (list): List of message dictionaries with role and content keys
+        model (str): The model name to calculate tokens for
+
+    Returns:
+        int: Number of tokens used
+    """
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
-        logger.warn("Warning: model not found. Using cl100k_base encoding.")
+        logger.warning("Warning: model not found. Using cl100k_base encoding.")
         encoding = tiktoken.get_encoding("cl100k_base")
+
+    # Models with tokens_per_message = 3
     if model in {
         "gpt-3.5-turbo-0613",
         "gpt-3.5-turbo-16k-0613",
@@ -39,6 +50,9 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
         "gpt-4-32k-0314",
         "gpt-4-0613",
         "gpt-4-32k-0613",
+        "gpt-3.5-turbo-0125",
+        "gpt-4o-mini-2024-07-18",
+        "gpt-4o-2024-08-06",
     }:
         tokens_per_message = 3
         tokens_per_name = 1
@@ -47,13 +61,24 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
             4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
         )
         tokens_per_name = -1  # if there's a name, the role is omitted
-    elif "gpt-3.5-turbo" in model:
-        logger.warn(
-            "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613."
+    # Handle generic model families
+    elif DEFAULT_GPT_MODEL in model:
+        logger.warning(
+            "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125."
         )
-        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
+        return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0125")
+    elif "gpt-4o-mini" in model:
+        logger.warning(
+            "Warning: gpt-4o-mini may update over time. Returning num tokens assuming gpt-4o-mini-2024-07-18."
+        )
+        return num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18")
+    elif "gpt-4o" in model:
+        logger.warning(
+            "Warning: gpt-4o may update over time. Returning num tokens assuming gpt-4o-2024-08-06."
+        )
+        return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
     elif "gpt-4" in model:
-        logger.warn(
+        logger.warning(
             "Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613."
         )
         return num_tokens_from_messages(messages, model="gpt-4-0613")
@@ -61,6 +86,8 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
         raise NotImplementedError(
             f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
         )
+
+    # Count tokens
     num_tokens = 0
     for message in messages:
         num_tokens += tokens_per_message
@@ -68,11 +95,12 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
             num_tokens += len(encoding.encode(json.dumps(value)))
             if key == "name":
                 num_tokens += tokens_per_name
+
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
     return num_tokens
 
 
-def tokens_from_string(string, model="gpt-3.5-turbo"):
+def tokens_from_string(string, model=DEFAULT_GPT_MODEL):
     """Return the number of tokens used by a string."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -85,7 +113,7 @@ def tokens_from_string(string, model="gpt-3.5-turbo"):
     return tokens
 
 
-def num_tokens_from_string(prompt, model="gpt-3.5-turbo"):
+def num_tokens_from_string(prompt, model=DEFAULT_GPT_MODEL):
     """Return the number of tokens used by a string."""
     return len(tokens_from_string(prompt, model=model))
 
@@ -126,7 +154,7 @@ class OpenAIService(metaclass=Singleton):
                 },
                 {"role": "user", "content": query},
             ],
-            model=GPT_MODEL,
+            model=DEFAULT_GPT_MODEL,
             temperature=TEMPERATURE,
         )
         return response.choices[0]["message"]["content"]
@@ -145,7 +173,7 @@ class OpenAIService(metaclass=Singleton):
                 },
                 {"role": "user", "content": query},
             ],
-            model=GPT_MODEL,
+            model=DEFAULT_GPT_MODEL,
             temperature=TEMPERATURE,
             stream=True,
         )
@@ -174,5 +202,5 @@ class OpenAIService(metaclass=Singleton):
             raise ValueError("Invalid OpenAI response: missing 'embedding'") from e
 
 
-GPT_3_MODELS = {4096: "gpt-3.5-turbo", 16384: "gpt-3.5-turbo-16k"}
+GPT_3_MODELS = {4096: DEFAULT_GPT_MODEL, 16384: "gpt-3.5-turbo-16k"}
 GPT_4_MODELS = {8192: "gpt-4", 32768: "gpt-4-32k"}
