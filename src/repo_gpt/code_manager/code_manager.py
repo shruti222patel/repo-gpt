@@ -60,7 +60,8 @@ class CodeManager:
             df = pd.DataFrame(loaded_data)
         except Exception as e:
             logger.error(
-                f"Failed to repogpt generated data for this repo. Try a hard reset by deleting your `.repo_gpt` directory and re-running `repo-gpt setup`. Error: {e}"
+                f"Failed to repogpt generated data for this repo. Try a hard reset by deleting your `.repo_gpt` "
+                f"directory and re-running `repo-gpt setup`. Error: {e}"
             )
             return None
 
