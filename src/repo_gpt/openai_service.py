@@ -16,7 +16,7 @@ from tenacity import (  # for exponential backoff
 from repo_gpt.utils import Singleton
 
 MAX_RETRIES = 3
-DEFAULT_GPT_MODEL = "gpt-4o-mini"
+GPT_MODEL = "gpt-4o-mini"
 EMBEDDING_MODEL = "text-embedding-ada-002"
 TEMPERATURE = (
     0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
@@ -25,7 +25,7 @@ TEMPERATURE = (
 logger = logging.getLogger(__name__)
 
 
-def num_tokens_from_messages(messages, model=DEFAULT_GPT_MODEL):
+def num_tokens_from_messages(messages, model=GPT_MODEL):
     """
     Return the number of tokens used by a list of messages.
 
@@ -62,7 +62,7 @@ def num_tokens_from_messages(messages, model=DEFAULT_GPT_MODEL):
         )
         tokens_per_name = -1  # if there's a name, the role is omitted
     # Handle generic model families
-    elif DEFAULT_GPT_MODEL in model:
+    elif GPT_MODEL in model:
         logger.debug(
             "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125."
         )
@@ -100,7 +100,7 @@ def num_tokens_from_messages(messages, model=DEFAULT_GPT_MODEL):
     return num_tokens
 
 
-def tokens_from_string(string, model=DEFAULT_GPT_MODEL):
+def tokens_from_string(string, model=GPT_MODEL):
     """Return the number of tokens used by a string."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -113,7 +113,7 @@ def tokens_from_string(string, model=DEFAULT_GPT_MODEL):
     return tokens
 
 
-def num_tokens_from_string(prompt, model=DEFAULT_GPT_MODEL):
+def num_tokens_from_string(prompt, model=GPT_MODEL):
     """Return the number of tokens used by a string."""
     return len(tokens_from_string(prompt, model=model))
 
@@ -154,7 +154,7 @@ class OpenAIService(metaclass=Singleton):
                 },
                 {"role": "user", "content": query},
             ],
-            model=DEFAULT_GPT_MODEL,
+            model=GPT_MODEL,
             temperature=TEMPERATURE,
         )
         return response.choices[0]["message"]["content"]
@@ -173,7 +173,7 @@ class OpenAIService(metaclass=Singleton):
                 },
                 {"role": "user", "content": query},
             ],
-            model=DEFAULT_GPT_MODEL,
+            model=GPT_MODEL,
             temperature=TEMPERATURE,
             stream=True,
         )

@@ -1,5 +1,5 @@
 from .code_manager.abstract_extractor import LanguageHandler
-from .openai_service import OpenAIService
+from .openai_service import GPT_MODEL, OpenAIService
 
 
 class TestGenerator:
@@ -13,7 +13,7 @@ class TestGenerator:
         debug: bool = False,
         approx_min_cases_to_cover: int = 7,
         reruns_if_fail: int = 1,
-        gpt_model: str = "gpt-4o-mini",
+        gpt_model: str = GPT_MODEL,
     ):
         self.messages = []
         self.language = language
