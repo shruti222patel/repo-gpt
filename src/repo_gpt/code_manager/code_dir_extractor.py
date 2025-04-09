@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
+from ..openai_service import EMBEDDING_MODEL
 from .abstract_extractor import AbstractCodeExtractor
 
 logger = logging.getLogger(__name__)
@@ -66,8 +67,17 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         )
 
     def _map_filepath_to_checksum(self) -> Dict[str, str]:  # filepath : checksum
+        # Return empty dict if DataFrame is None or empty
         if self.code_df is None or self.code_df.empty:
             return {}
+
+        if (
+            "embedding_model" not in self.code_df.columns
+            or not self.code_df["embedding_model"].eq(EMBEDDING_MODEL).all()
+        ):
+            return {}
+
+        # If all checks pass, return the filepath to checksum mapping
         return (
             self.code_df.drop_duplicates(subset=["file_checksum"])[
                 ["filepath", "file_checksum"]

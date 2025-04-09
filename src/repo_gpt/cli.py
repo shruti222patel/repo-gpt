@@ -198,10 +198,14 @@ def add_tests(
     testing_package,
 ):
     # TODO: add language & test framework from config file
+    if not test_save_file_path:
+        print(
+            f"Error: {test_save_file_path} is not specified. Please specify a --test_save_file_path arg."
+        )
     # Check file path isn't a directory
     if os.path.isdir(test_save_file_path):
         print(
-            f"Error: {test_save_file_path} is a directory. Please specify a file path."
+            f"Error: {test_save_file_path} is a directory. Please ensure the arg for --test_save_file_path is a file path."
         )
         return
 

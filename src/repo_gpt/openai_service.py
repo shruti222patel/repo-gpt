@@ -17,7 +17,7 @@ from repo_gpt.utils import Singleton
 
 MAX_RETRIES = 3
 GPT_MODEL = "gpt-4o-mini"
-EMBEDDING_MODEL = "text-embedding-ada-002"
+EMBEDDING_MODEL = "text-embedding-3-small"
 TEMPERATURE = (
     0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
 )
