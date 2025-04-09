@@ -200,7 +200,3 @@ class OpenAIService(metaclass=Singleton):
         except (AttributeError, IndexError) as e:
             print("❌ Malformed OpenAI response:", response)
             raise ValueError("Invalid OpenAI response: missing 'embedding'") from e
-
-
-GPT_3_MODELS = {4096: DEFAULT_GPT_MODEL, 16384: "gpt-3.5-turbo-16k"}
-GPT_4_MODELS = {8192: "gpt-4", 32768: "gpt-4-32k"}
