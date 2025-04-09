@@ -202,6 +202,7 @@ def add_tests(
         print(
             f"Error: {test_save_file_path} is not specified. Please specify a --test_save_file_path arg."
         )
+        return
     # Check file path isn't a directory
     if os.path.isdir(test_save_file_path):
         print(

@@ -4,6 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Tuple, TypeVar, Union
 
+from repo_gpt.openai_service import EMBEDDING_MODEL
+
 FileHandler = TypeVar("FileHandler", bound="AbstractHandler")
 
 
@@ -30,6 +32,7 @@ class ParsedCode:
     outputs: Union[Tuple[str, ...], str, None]
     filepath: str = None
     file_checksum: str = None
+    embedding_model: str = EMBEDDING_MODEL
 
     def __lt__(self, other: "ParsedCode"):
         return self.code < other.code

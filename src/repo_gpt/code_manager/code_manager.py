@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 from ..console import verbose_print
-from ..openai_service import OpenAIService
+from ..openai_service import EMBEDDING_MODEL, OpenAIService
 from .code_dir_extractor import CodeDirectoryExtractor
 from .code_processor import CodeProcessor
 
@@ -51,12 +51,22 @@ class CodeManager:
         return "\n".join(structured_output)
 
     def load_code_dataframe(self):
-        dataframe = None
-        if os.path.exists(self.output_filepath):
-            with open(self.output_filepath, "rb") as file:
-                loaded_data = pickle.load(file)
-            dataframe = pd.DataFrame(loaded_data)
-        return dataframe
+        if not self.output_filepath.exists():
+            return None
+
+        with open(self.output_filepath, "rb") as file:
+            loaded_data = pickle.load(file)
+
+        df = pd.DataFrame(loaded_data)
+
+        # TODO: move this logic into one place where we decide if the particular file's data needs to be rewritten
+        if (
+            "embedding_model" not in df.columns
+            or not df["embedding_model"].eq(EMBEDDING_MODEL).all()
+        ):
+            return None
+
+        return df
 
     def setup(self):
         self._extract_process_and_save_code()
