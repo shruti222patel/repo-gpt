@@ -1,12 +1,5 @@
-import openai as openai
-
 from .code_manager.abstract_extractor import LanguageHandler
-from .openai_service import (
-    GPT_3_MODELS,
-    GPT_4_MODELS,
-    OpenAIService,
-    num_tokens_from_messages,
-)
+from .openai_service import GPT_MODEL, OpenAIService
 
 
 class TestGenerator:
@@ -20,7 +13,7 @@ class TestGenerator:
         debug: bool = False,
         approx_min_cases_to_cover: int = 7,
         reruns_if_fail: int = 1,
-        use_gpt_4: bool = False,
+        gpt_model: str = GPT_MODEL,
     ):
         self.messages = []
         self.language = language
@@ -30,7 +23,7 @@ class TestGenerator:
         self.approx_min_cases_to_cover = approx_min_cases_to_cover
         self.reruns_if_fail = reruns_if_fail
         self.code_handler = LanguageHandler[language.upper()].value()
-        self.model_set = GPT_4_MODELS if use_gpt_4 else GPT_3_MODELS
+        self.gpt_model = gpt_model
         self.openai_service = OpenAIService()
 
     def create_gpt_message(self, role: str, content: str) -> dict:
@@ -94,15 +87,8 @@ class TestGenerator:
                 self.print_message_delta(delta)
         return assistant_message
 
-    def find_gpt3_model(self):
-        num_tokens = num_tokens_from_messages(self.messages)
-        for max_tokens, model in self.model_set.items():
-            if num_tokens < max_tokens:
-                return model
-        raise Exception(f"Too many tokens ({num_tokens}) for {model}")
-
     def generate_stream_response(self) -> str:
-        model = self.find_gpt3_model()
+        model = self.gpt_model
         response = self.openai_service.client.chat.completions.create(
             model=model,
             messages=self.messages,

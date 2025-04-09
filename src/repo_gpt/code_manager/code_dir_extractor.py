@@ -2,7 +2,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Union
 
 import pandas as pd
 from pathspec import PathSpec
@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 
 from ..console import verbose_print
 from ..file_handler.abstract_handler import ParsedCode
+from ..openai_service import EMBEDDING_MODEL
 from .abstract_extractor import AbstractCodeExtractor
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         self,
         root_directory_path: Path,
         output_filepath: Path,
-        code_df: pd.DataFrame | None = None,
+        code_df: Union[pd.DataFrame, None] = None,
     ):
         self.root_directory_path = root_directory_path
         self.output_filepath = output_filepath
@@ -66,8 +67,11 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         )
 
     def _map_filepath_to_checksum(self) -> Dict[str, str]:  # filepath : checksum
+        # Return empty dict if DataFrame is None or empty
         if self.code_df is None or self.code_df.empty:
             return {}
+
+        # If all checks pass, return the filepath to checksum mapping
         return (
             self.code_df.drop_duplicates(subset=["file_checksum"])[
                 ["filepath", "file_checksum"]

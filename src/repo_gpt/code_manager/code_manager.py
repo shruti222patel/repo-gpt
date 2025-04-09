@@ -2,11 +2,12 @@ import logging
 import os
 import pickle
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
 from ..console import verbose_print
-from ..openai_service import OpenAIService
+from ..openai_service import EMBEDDING_MODEL, OpenAIService
 from .code_dir_extractor import CodeDirectoryExtractor
 from .code_processor import CodeProcessor
 
@@ -16,8 +17,8 @@ logger = logging.getLogger(__name__)
 class CodeManager:
     def __init__(
         self,
-        output_filepath: Path | str,
-        root_directory: Path | str,
+        output_filepath: Union[Path, str],
+        root_directory: Union[Path, str],
         openai_service: OpenAIService = None,
     ):
         self.root_directory = (
@@ -51,12 +52,28 @@ class CodeManager:
         return "\n".join(structured_output)
 
     def load_code_dataframe(self):
-        dataframe = None
-        if os.path.exists(self.output_filepath):
+        if not self.output_filepath.exists():
+            return None
+
+        try:
             with open(self.output_filepath, "rb") as file:
                 loaded_data = pickle.load(file)
-            dataframe = pd.DataFrame(loaded_data)
-        return dataframe
+            df = pd.DataFrame(loaded_data)
+        except Exception as e:
+            logger.error(
+                f"Failed to repogpt generated data for this repo. Try a hard reset by deleting your `.repo_gpt` "
+                f"directory and re-running `repo-gpt setup`. Error: {e}"
+            )
+            return None
+
+        # TODO: move this logic into one place where we decide if the particular file's data needs to be rewritten
+        if (
+            "embedding_model" not in df.columns
+            or not df["embedding_model"].eq(EMBEDDING_MODEL).all()
+        ):
+            return None
+
+        return df
 
     def setup(self):
         self._extract_process_and_save_code()

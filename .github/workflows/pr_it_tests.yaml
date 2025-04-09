@@ -1,11 +1,11 @@
-name: PR Checks
+name: PR Checks -- IT Tests
 
 on:
   pull_request:
     types: [opened, synchronize]
     paths:
       - 'src/**'
-      - 'tests/**'
+      - 'test/it/**'
       - 'pyproject.toml'
 
 concurrency:
