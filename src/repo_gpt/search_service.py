@@ -3,6 +3,7 @@ import logging
 import pickle
 from enum import Enum
 from pathlib import Path, PosixPath
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -48,7 +49,7 @@ class SearchService(metaclass=Singleton):
     def __init__(
         self,
         openai_service: OpenAIService,
-        pickle_path: Path | str = None,
+        pickle_path: Union[Path, str] = None,
         language: str = "python",
     ):
         self.pickle_path = (

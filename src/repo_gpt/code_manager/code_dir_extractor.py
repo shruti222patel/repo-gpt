@@ -2,7 +2,7 @@ import hashlib
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Union
 
 import pandas as pd
 from pathspec import PathSpec
@@ -22,7 +22,7 @@ class CodeDirectoryExtractor(AbstractCodeExtractor):
         self,
         root_directory_path: Path,
         output_filepath: Path,
-        code_df: pd.DataFrame | None = None,
+        code_df: Union[pd.DataFrame, None] = None,
     ):
         self.root_directory_path = root_directory_path
         self.output_filepath = output_filepath

@@ -2,6 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
@@ -16,8 +17,8 @@ logger = logging.getLogger(__name__)
 class CodeManager:
     def __init__(
         self,
-        output_filepath: Path | str,
-        root_directory: Path | str,
+        output_filepath: Union[Path, str],
+        root_directory: Union[Path, str],
         openai_service: OpenAIService = None,
     ):
         self.root_directory = (
