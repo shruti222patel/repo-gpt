@@ -63,22 +63,22 @@ def num_tokens_from_messages(messages, model=DEFAULT_GPT_MODEL):
         tokens_per_name = -1  # if there's a name, the role is omitted
     # Handle generic model families
     elif DEFAULT_GPT_MODEL in model:
-        logger.warning(
+        logger.debug(
             "Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0125."
         )
         return num_tokens_from_messages(messages, model="gpt-3.5-turbo-0125")
     elif "gpt-4o-mini" in model:
-        logger.warning(
+        logger.debug(
             "Warning: gpt-4o-mini may update over time. Returning num tokens assuming gpt-4o-mini-2024-07-18."
         )
         return num_tokens_from_messages(messages, model="gpt-4o-mini-2024-07-18")
     elif "gpt-4o" in model:
-        logger.warning(
+        logger.debug(
             "Warning: gpt-4o may update over time. Returning num tokens assuming gpt-4o-2024-08-06."
         )
         return num_tokens_from_messages(messages, model="gpt-4o-2024-08-06")
     elif "gpt-4" in model:
-        logger.warning(
+        logger.debug(
             "Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613."
         )
         return num_tokens_from_messages(messages, model="gpt-4-0613")
