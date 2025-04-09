@@ -54,10 +54,15 @@ class CodeManager:
         if not self.output_filepath.exists():
             return None
 
-        with open(self.output_filepath, "rb") as file:
-            loaded_data = pickle.load(file)
-
-        df = pd.DataFrame(loaded_data)
+        try:
+            with open(self.output_filepath, "rb") as file:
+                loaded_data = pickle.load(file)
+            df = pd.DataFrame(loaded_data)
+        except Exception as e:
+            logger.error(
+                f"Failed to repogpt generated data for this repo. Try a hard reset by deleting your `.repo_gpt` directory and re-running `repo-gpt setup`. Error: {e}"
+            )
+            return None
 
         # TODO: move this logic into one place where we decide if the particular file's data needs to be rewritten
         if (
