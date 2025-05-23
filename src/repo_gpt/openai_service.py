@@ -16,7 +16,7 @@ from tenacity import (  # for exponential backoff
 from repo_gpt.utils import Singleton
 
 MAX_RETRIES = 3
-GPT_MODEL = "gpt-4o-mini"
+GPT_MODEL = "gpt-4.1-mini"
 EMBEDDING_MODEL = "text-embedding-3-small"
 TEMPERATURE = (
     0.4  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
@@ -53,6 +53,7 @@ def num_tokens_from_messages(messages, model=GPT_MODEL):
         "gpt-3.5-turbo-0125",
         "gpt-4o-mini-2024-07-18",
         "gpt-4o-2024-08-06",
+        "gpt-4.1-mini",  # TODO check this rn this information isn't available for gpt 4.1 models
     }:
         tokens_per_message = 3
         tokens_per_name = 1
