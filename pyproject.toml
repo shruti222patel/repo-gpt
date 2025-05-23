@@ -29,6 +29,7 @@ pathspec = "^0.11.1"
 openai = "^1.68.2"
 rich = "^13.4.1"
 tenacity = "^8.2.2"
+tree_sitter="^0.20.4" # Github issue: https://github.com/shruti222patel/repo-gpt/issues/28
 tree-sitter-languages = "^1.10.2"
 tiktoken = "^0.4.0"
 configargparse = "^1.7"
