@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "repo-gpt"
-version = "0.4.1"
+version = "0.4.2"
 description = "Search your code repository using GPT4."
 authors = ["Shruti Patel <shruti222patel@gmail.com>"]
 license = "Apache License 2.0"
